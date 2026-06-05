@@ -22,6 +22,7 @@ const CountrySelector = dynamic(() => import('@/components/Location/CountrySelec
 import FeatureGrid from '@/components/Home/FeatureGrid';
 import StatsRow from '@/components/Home/StatsRow';
 import HeroVisual from '@/components/Home/HeroVisual';
+import TestimonialCarousel from '@/components/Home/TestimonialCarousel';
 
 /** BallotIQ landing page with hero, features, and quick start */
 export default function HomePage() {
@@ -211,6 +212,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <TestimonialCarousel />
 
       <StatsRow />
 
