@@ -24,6 +24,14 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? '',
 };
 
+/** True when the minimum client config needed to initialize Firebase is present. */
+const hasFirebaseConfig = Boolean(
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId &&
+  firebaseConfig.appId
+);
+
 /** Singleton Firebase app instance */
 let firebaseApp: FirebaseApp | null = null;
 
@@ -40,8 +48,9 @@ let analyticsInstance: Analytics | null = null;
  * Returns the Firebase app singleton, initializing if needed.
  * @returns Firebase app instance
  */
-export function getFirebaseApp(): FirebaseApp {
+export function getFirebaseApp(): FirebaseApp | null {
   if (firebaseApp) return firebaseApp;
+  if (!hasFirebaseConfig) return null;
   firebaseApp = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
   return firebaseApp;
 }
@@ -50,9 +59,11 @@ export function getFirebaseApp(): FirebaseApp {
  * Returns the Firestore singleton instance.
  * @returns Firestore database instance
  */
-export function getFirestoreDB(): Firestore {
+export function getFirestoreDB(): Firestore | null {
   if (firestoreInstance) return firestoreInstance;
-  firestoreInstance = getFirestore(getFirebaseApp());
+  const app = getFirebaseApp();
+  if (!app) return null;
+  firestoreInstance = getFirestore(app);
   return firestoreInstance;
 }
 
@@ -60,9 +71,11 @@ export function getFirestoreDB(): Firestore {
  * Returns the Auth singleton instance.
  * @returns Firebase Auth instance
  */
-export function getFirebaseAuth(): Auth {
+export function getFirebaseAuth(): Auth | null {
   if (authInstance) return authInstance;
-  authInstance = getAuth(getFirebaseApp());
+  const app = getFirebaseApp();
+  if (!app) return null;
+  authInstance = getAuth(app);
   return authInstance;
 }
 
@@ -72,10 +85,12 @@ export function getFirebaseAuth(): Auth {
  * @returns Analytics instance or null
  */
 export function getFirebaseAnalytics(): Analytics | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || !hasFirebaseConfig) return null;
   if (analyticsInstance) return analyticsInstance;
   try {
-    analyticsInstance = getAnalytics(getFirebaseApp());
+    const app = getFirebaseApp();
+    if (!app) return null;
+    analyticsInstance = getAnalytics(app);
     return analyticsInstance;
   } catch (error) {
     console.error('[Firebase] Analytics initialization failed:', error);
@@ -93,7 +108,7 @@ export const analytics = typeof window !== 'undefined' ? getFirebaseAnalytics() 
  * Promise that resolves when anonymous authentication is ready.
  */
 export const authReady = new Promise<void>((resolve) => {
-  if (typeof window === 'undefined') {
+  if (typeof window === 'undefined' || !hasFirebaseConfig) {
     resolve();
     return;
   }
@@ -105,6 +120,11 @@ export const authReady = new Promise<void>((resolve) => {
   }, 5000);
 
   const auth = getFirebaseAuth();
+  if (!auth) {
+    clearTimeout(timeout);
+    resolve();
+    return;
+  }
   const unsubscribe = onAuthStateChanged(auth, (user) => {
     if (user) {
       clearTimeout(timeout);
@@ -128,6 +148,8 @@ export const authReady = new Promise<void>((resolve) => {
 export async function ensureAnonymousAuth(): Promise<User | null> {
   const auth = getFirebaseAuth();
 
+  if (!auth) return null;
+
   if (auth.currentUser) {
     return auth.currentUser;
   }
@@ -148,10 +170,11 @@ export async function ensureAnonymousAuth(): Promise<User | null> {
  */
 export function onAuthChange(callback: (user: User | null) => void): () => void {
   const auth = getFirebaseAuth();
+  if (!auth) return () => undefined;
   return onAuthStateChanged(auth, callback);
 }
 
 /**
  * Exported Firebase App instance for legacy or direct access.
  */
-export const app = getFirebaseApp();
+export const app = typeof window !== 'undefined' ? getFirebaseApp() : null;

@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import TranslatedText from '@/components/ui/TranslatedText';
+import { useTranslation } from '@/hooks/useTranslation';
 import type { Country } from '@/types';
 import { getCountryByCode } from '@/lib/constants/countries';
 
@@ -19,6 +20,7 @@ const HeroVisual = dynamic(() => import('@/components/Home/HeroVisual'), { ssr: 
 
 export default function HomePage() {
   const router = useRouter();
+  const { language } = useTranslation();
   const previewCountry = getCountryByCode('IN');
 
   const handleCountrySelect = (country: Country) => {
@@ -45,9 +47,9 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-6">
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/60">
-              <a href="#features" className="hover:text-white transition-colors">Features</a>
-              <a href="#security" className="hover:text-white transition-colors">Security</a>
-              <a href="#mission" className="hover:text-white transition-colors">Our Mission</a>
+              <a href="#features" className="hover:text-white transition-colors"><TranslatedText text="Features" /></a>
+              <a href="#security" className="hover:text-white transition-colors"><TranslatedText text="Security" /></a>
+              <a href="#mission" className="hover:text-white transition-colors"><TranslatedText text="Our Mission" /></a>
             </div>
             <LanguageSelector />
           </div>
@@ -72,9 +74,15 @@ export default function HomePage() {
                 <TranslatedText text="Revolutionizing Civic Tech" />
               </div>
 
-              <h1 className="text-5xl sm:text-6xl lg:text-8xl font-black text-white tracking-tighter leading-[0.95] font-heading">
-                Understand your vote.<br />
-                <span className="text-primary-gradient">Shape your future.</span>
+              <h1 className={`font-black text-white tracking-tighter font-heading ${
+                language === 'ta'
+                  ? 'text-4xl sm:text-5xl lg:text-6xl leading-[1.25]'
+                  : language === 'hi'
+                    ? 'text-4xl sm:text-5xl lg:text-7xl leading-[1.25]'
+                    : 'text-5xl sm:text-6xl lg:text-8xl leading-[0.95]'
+              }`}>
+                <TranslatedText text="Understand your vote." /><br />
+                <span className="text-primary-gradient"><TranslatedText text="Shape your future." /></span>
               </h1>
 
               <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
@@ -128,8 +136,8 @@ export default function HomePage() {
         <section id="features" className="py-32 px-6 bg-white/[0.02]">
           <div className="max-w-7xl mx-auto space-y-16">
             <div className="text-center space-y-4 max-w-2xl mx-auto">
-              <h2 className="text-4xl sm:text-5xl font-black text-white font-heading">Engineered for Transparency.</h2>
-              <p className="text-muted-foreground text-lg">Every feature is designed to empower you with unbiased, factual, and accessible election information.</p>
+              <h2 className="text-4xl sm:text-5xl font-black text-white font-heading"><TranslatedText text="Engineered for Transparency." /></h2>
+              <p className="text-muted-foreground text-lg"><TranslatedText text="Every feature is designed to empower you with unbiased, factual, and accessible election information." /></p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -179,8 +187,8 @@ export default function HomePage() {
                     <p className="text-muted-foreground text-base"><TranslatedText text="AI-driven content cross-referenced with official governmental and international election monitor data." /></p>
                   </div>
                   <div className="flex items-center gap-2 pt-8">
-                     <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold tracking-tighter uppercase">Verified API</div>
-                     <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-tighter uppercase">AES-256</div>
+                     <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold tracking-tighter uppercase"><TranslatedText text="Verified API" /></div>
+                     <div className="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-tighter uppercase"><TranslatedText text="AES-256" /></div>
                   </div>
                 </div>
               </Card>
@@ -194,7 +202,7 @@ export default function HomePage() {
                       </div>
                       <h3 className="text-3xl font-bold text-white"><TranslatedText text="Community Polling" /></h3>
                       <p className="text-muted-foreground text-lg"><TranslatedText text="Find your nearest polling station and see real-time wait times reported by other BallotIQ users." /></p>
-                      <Button variant="outline" className="w-fit">Explore Maps</Button>
+                      <Button variant="outline" className="w-fit"><TranslatedText text="Explore Maps" /></Button>
                     </div>
                     <div className="relative bg-white/5 rounded-[2rem] border border-white/10 overflow-hidden flex items-center justify-center">
                        <MapPin className="w-24 h-24 text-indigo-500/30" />
@@ -210,8 +218,8 @@ export default function HomePage() {
         <section id="get-started" className="py-32 px-6">
           <div className="max-w-4xl mx-auto text-center space-y-12">
             <h2 className="text-5xl sm:text-7xl font-black text-white font-heading tracking-tight leading-none">
-              Ready to meet your<br />
-              <span className="text-primary-gradient">Civic Future?</span>
+              <TranslatedText text="Ready to meet your" /><br />
+              <span className="text-primary-gradient"><TranslatedText text="Civic Future?" /></span>
             </h2>
             
             <div className="p-1 rounded-[3rem] bg-gradient-to-b from-white/10 to-transparent">
@@ -219,7 +227,7 @@ export default function HomePage() {
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/20 blur-[80px] rounded-full" />
                 
                 <div className="relative z-10 space-y-8">
-                  <p className="text-xl text-muted-foreground">Select your region to begin your personalized journey.</p>
+                  <p className="text-xl text-muted-foreground"><TranslatedText text="Select your region to begin your personalized journey." /></p>
                   <CountrySelector onSelect={handleCountrySelect} />
                 </div>
               </div>
@@ -230,9 +238,9 @@ export default function HomePage() {
         {/* Trust Section */}
         <section id="security" className="py-20 px-6 border-t border-white/5">
            <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-12 opacity-30 grayscale hover:grayscale-0 transition-all duration-500">
-              <div className="flex items-center gap-2 text-2xl font-bold text-white"><Shield className="w-8 h-8" /> SECURE</div>
-              <div className="flex items-center gap-2 text-2xl font-bold text-white"><Users className="w-8 h-8" /> PRIVACY</div>
-              <div className="flex items-center gap-2 text-2xl font-bold text-white"><Globe className="w-8 h-8" /> OPEN-SOURCE</div>
+              <div className="flex items-center gap-2 text-2xl font-bold text-white"><Shield className="w-8 h-8" /> <TranslatedText text="SECURE" /></div>
+              <div className="flex items-center gap-2 text-2xl font-bold text-white"><Users className="w-8 h-8" /> <TranslatedText text="PRIVACY" /></div>
+              <div className="flex items-center gap-2 text-2xl font-bold text-white"><Globe className="w-8 h-8" /> <TranslatedText text="OPEN-SOURCE" /></div>
            </div>
         </section>
       </main>
@@ -246,30 +254,30 @@ export default function HomePage() {
               <span className="text-2xl font-bold text-white tracking-tighter">BallotIQ</span>
             </div>
             <p className="text-muted-foreground max-w-sm">
-              Empowering the next generation of voters with AI-driven, personalized civic education. Non-partisan, factual, and free for everyone.
+              <TranslatedText text="Empowering the next generation of voters with AI-driven, personalized civic education. Non-partisan, factual, and free for everyone." />
             </p>
           </div>
           <div className="space-y-4">
-            <h4 className="text-white font-bold">Platform</h4>
+            <h4 className="text-white font-bold"><TranslatedText text="Platform" /></h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-white transition-colors">Learning Center</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">AI Assistant</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Polling Maps</a></li>
+              <li><a href="#" className="hover:text-white transition-colors"><TranslatedText text="Learning Center" /></a></li>
+              <li><a href="#" className="hover:text-white transition-colors"><TranslatedText text="AI Assistant" /></a></li>
+              <li><a href="#" className="hover:text-white transition-colors"><TranslatedText text="Polling Maps" /></a></li>
             </ul>
           </div>
           <div className="space-y-4">
-            <h4 className="text-white font-bold">Project</h4>
+            <h4 className="text-white font-bold"><TranslatedText text="Project" /></h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-white transition-colors">Mission</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Open Source</a></li>
+              <li><a href="#" className="hover:text-white transition-colors"><TranslatedText text="Mission" /></a></li>
+              <li><a href="#" className="hover:text-white transition-colors"><TranslatedText text="Privacy Policy" /></a></li>
+              <li><a href="#" className="hover:text-white transition-colors"><TranslatedText text="Open Source" /></a></li>
             </ul>
           </div>
         </div>
         <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-muted-foreground">© 2026 BallotIQ. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground"><TranslatedText text="© 2026 BallotIQ. All rights reserved." /></p>
           <div className="flex items-center gap-6">
-             <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Built with Gemini</span>
+             <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest"><TranslatedText text="Built with Gemini" /></span>
           </div>
         </div>
       </footer>

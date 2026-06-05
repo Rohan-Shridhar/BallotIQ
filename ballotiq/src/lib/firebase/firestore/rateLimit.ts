@@ -9,6 +9,7 @@ export async function saveRateLimitState(state: RateLimitState): Promise<void> {
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     const ref = doc(db, 'rate_limits', state.sessionId);
     await setDoc(ref, state, { merge: true });
   } catch (error) {
@@ -25,6 +26,7 @@ export async function getRateLimitState(
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return null;
     const ref = doc(db, 'rate_limits', sessionId);
     const snap = await getDoc(ref);
     return snap.exists() ? (snap.data() as RateLimitState) : null;

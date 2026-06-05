@@ -24,9 +24,10 @@ describe('TranslatedText', () => {
     expect(mockTranslate).not.toHaveBeenCalled();
   });
 
-  it('renders translated text when language is not "en"', async () => {
+  it('renders translated text when language is not "en" (default isStatic={true})', async () => {
+    const mockTranslateFn = jest.fn().mockResolvedValue('Namaste');
     (useTranslation as jest.Mock).mockReturnValue({
-      translate: jest.fn().mockResolvedValue('Namaste'),
+      translate: mockTranslateFn,
       language: 'hi',
     });
 
@@ -35,6 +36,22 @@ describe('TranslatedText', () => {
     await waitFor(() => {
       expect(screen.getByText('Namaste')).toBeInTheDocument();
     });
+    expect(mockTranslateFn).toHaveBeenCalledWith('Hello', true);
+  });
+
+  it('renders translated text when language is not "en" with isStatic={false}', async () => {
+    const mockTranslateFn = jest.fn().mockResolvedValue('Namaste');
+    (useTranslation as jest.Mock).mockReturnValue({
+      translate: mockTranslateFn,
+      language: 'hi',
+    });
+
+    render(<TranslatedText text="Hello" isStatic={false} />);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Namaste')).toBeInTheDocument();
+    });
+    expect(mockTranslateFn).toHaveBeenCalledWith('Hello', false);
   });
 
   it('shows opacity-50 class while translating', () => {

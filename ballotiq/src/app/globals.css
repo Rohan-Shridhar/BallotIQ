@@ -103,7 +103,12 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Bento Grid Card */
 .bento-card {
-  @apply glass rounded-[2rem] p-8 overflow-hidden relative transition-all duration-500;
+  /* Inline glassmorphism styles because `@apply` cannot reference custom classes */
+  background: rgba(10, 12, 20, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  @apply rounded-[2rem] p-8 overflow-hidden relative transition-all duration-500;
 }
 .bento-card:hover {
   @apply border-white/20 bg-white/[0.05];

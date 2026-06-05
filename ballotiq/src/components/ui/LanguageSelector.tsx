@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { LANGUAGES } from '@/lib/constants/languages';
 import { useTranslation } from '@/hooks/useTranslation';
+import TranslatedText from '@/components/ui/TranslatedText';
 
 interface LanguageSelectorProps {
   className?: string;
@@ -16,12 +17,27 @@ interface LanguageSelectorProps {
 
 /** Premium custom dropdown for switching between 8 supported languages */
 export default function LanguageSelector({ className = '' }: LanguageSelectorProps) {
-  const { language, setLanguage } = useTranslation();
+  const { language, setLanguage, translate } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [translatedPlaceholder, setTranslatedPlaceholder] = useState("Search language...");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadPlaceholder() {
+      const res = await translate("Search language...");
+      if (isMounted) {
+        setTranslatedPlaceholder(res);
+      }
+    }
+    loadPlaceholder();
+    return () => {
+      isMounted = false;
+    };
+  }, [language, translate]);
 
   const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
 
@@ -91,7 +107,7 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
         onKeyDown={(e) => {
           if (e.key === 'Escape') setIsOpen(false);
         }}
-        className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-200 hover:bg-white/10 hover:border-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
+        className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-200 hover:bg-white/10 hover:border-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
         aria-label="Change language"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -116,7 +132,7 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search language..."
+              placeholder={translatedPlaceholder}
               className="w-full px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
               onKeyDown={(e) => {
                 if (e.key === 'Escape') setIsOpen(false);
@@ -141,7 +157,7 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
                         setIsOpen(false);
                       }
                     }}
-                    className={`w-full px-4 py-2.5 text-sm flex items-center justify-between transition-colors ${
+                    className={`cursor-pointer w-full px-4 py-2.5 text-sm flex items-center justify-between transition-colors ${
                       language === lang.code
                         ? 'bg-blue-500/10 text-blue-400 font-semibold'
                         : 'text-gray-400 hover:bg-white/5 hover:text-white'
@@ -158,7 +174,9 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
                 </li>
               ))
             ) : (
-              <p className="px-4 py-4 text-[10px] text-gray-600 text-center uppercase tracking-widest font-bold" role="status">No results found</p>
+              <p className="px-4 py-4 text-[10px] text-gray-600 text-center uppercase tracking-widest font-bold" role="status">
+                <TranslatedText text="No results found" />
+              </p>
             )}
           </div>
         </div>

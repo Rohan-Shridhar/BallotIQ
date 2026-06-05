@@ -76,10 +76,10 @@ export default function StepCard({
           </span>
           <div>
             <h3 className={`text-lg font-semibold ${isCompleted ? 'text-emerald-300' : 'text-white'}`}>
-              <TranslatedText text={step.title} />
+              <TranslatedText text={step.title} isStatic={false} />
             </h3>
             <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-              <TranslatedText text={levelLabel} />
+              <TranslatedText text={levelLabel} isStatic={false} />
             </span>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function StepCard({
       {/* Main Content */}
       <div className="space-y-4">
         <div className={`text-sm leading-[1.8] ${isCompleted ? 'text-gray-400' : 'text-gray-200'} whitespace-pre-line`}>
-          <TranslatedText text={content} as="p" />
+          <TranslatedText text={content} as="p" isStatic={false} />
         </div>
 
         {/* TTS Button */}

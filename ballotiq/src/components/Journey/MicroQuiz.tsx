@@ -71,7 +71,7 @@ export default function MicroQuiz({
             <TranslatedText text="Quick Check" />
           </div>
           <h3 className="text-lg font-semibold text-white">
-            <TranslatedText text={question.question} />
+            <TranslatedText text={question.question} isStatic={false} />
           </h3>
           {onSpeak && (
             <TTSButton
@@ -106,7 +106,7 @@ export default function MicroQuiz({
             </button>
             <div id={`hint-${question.question.substring(0, 5)}`} className="hidden animate-in fade-in slide-in-from-top-1">
               <p className="text-[11px] text-gray-500 italic text-center px-4 leading-relaxed">
-                <TranslatedText text={question.hint} />
+                <TranslatedText text={question.hint} isStatic={false} />
               </p>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function MicroQuiz({
                   {isCorrect ? (
                     <TranslatedText text="You have a solid understanding of this concept." />
                   ) : (
-                    <TranslatedText text={explanation || ''} />
+                    <TranslatedText text={explanation || ''} isStatic={false} />
                   )}
                 </div>
               </div>

@@ -40,7 +40,7 @@ export default function QuizCard({
       </div>
 
       <h3 className="text-xl font-semibold text-white leading-relaxed">
-        <TranslatedText text={question.question} />
+        <TranslatedText text={question.question} isStatic={false} />
       </h3>
 
       <div className="space-y-4" role="radiogroup" aria-label="Answer choices">
@@ -75,7 +75,7 @@ export default function QuizCard({
               }`}>
                 {LABELS[i]}
               </span>
-              <span className="text-[15px] font-medium leading-relaxed"><TranslatedText text={option} /></span>
+              <span className="text-[15px] font-medium leading-relaxed"><TranslatedText text={option} isStatic={false} /></span>
             </button>
           );
         })}
@@ -85,7 +85,7 @@ export default function QuizCard({
         <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl" aria-live="polite">
           <p className="text-sm text-blue-300">
             <span className="font-semibold"><TranslatedText text="Explanation:" /> </span>
-            <TranslatedText text={question.explanation} />
+            <TranslatedText text={question.explanation} isStatic={false} />
           </p>
         </div>
       )}

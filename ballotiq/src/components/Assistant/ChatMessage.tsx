@@ -37,7 +37,7 @@ export default function ChatMessage({
           ? 'bg-blue-600 text-white rounded-tr-md shadow-lg shadow-blue-500/20'
           : 'bg-white/[0.03] border border-white/10 text-gray-100 rounded-tl-md'
       }`}>
-        <p className="whitespace-pre-wrap"><TranslatedText text={message.content} /></p>
+        <p className="whitespace-pre-wrap"><TranslatedText text={message.content} isStatic={false} /></p>
         {isAssistant && (
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <TTSButton text={message.content} isSpeaking={isSpeaking} currentText={currentSpokenText} onToggle={onSpeak} />
@@ -48,7 +48,7 @@ export default function ChatMessage({
               className="inline-flex items-center gap-1.5 text-[10px] text-blue-300 hover:text-blue-200 transition-colors bg-blue-400/10 px-2 py-1 rounded-md border border-blue-400/20"
             >
               <ExternalLink className="w-3 h-3" />
-              <TranslatedText text={message.officialSource?.name || userContext.electionBody || "Official Source"} />
+              <TranslatedText text={message.officialSource?.name || userContext.electionBody || "Official Source"} isStatic={false} />
             </a>
           </div>
         )}

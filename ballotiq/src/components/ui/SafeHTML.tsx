@@ -31,7 +31,7 @@ export default function SafeHTML({ html, className = '' }: SafeHTMLProps) {
       }
 
       setIsLoading(true);
-      const translated = await translate(html);
+      const translated = await translate(html, false);
       
       if (isMounted) {
         setProcessedHTML(sanitizeAIResponse(translated));

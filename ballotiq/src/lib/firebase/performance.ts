@@ -5,9 +5,10 @@
  */
 
 import { getPerformance, trace } from 'firebase/performance';
-import { app } from './client';
+import { getFirebaseApp } from './client';
 
-const perf = typeof window !== 'undefined' ? getPerformance(app) : null;
+const firebaseApp = typeof window !== 'undefined' ? getFirebaseApp() : null;
+const perf = firebaseApp ? getPerformance(firebaseApp) : null;
 
 /**
  * Wraps an async function with a Firebase Performance trace.
