@@ -125,7 +125,7 @@ export default function ChatWindow({
 
   return (
     <ErrorBoundary componentName="ChatWindow">
-      <div className="flex flex-col min-h-0 h-full rounded-[1.75rem] border border-white/10 bg-white/[0.02] backdrop-blur-xl shadow-2xl overflow-hidden">
+      <div className="flex flex-col min-h-0 h-full rounded-none md:rounded-[1.75rem] border-y border-x-0 md:border border-white/10 bg-white/[0.02] backdrop-blur-xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="px-4 sm:px-5 py-3 border-b border-white/10 flex items-center justify-between gap-3">
           <p className="text-xs text-gray-400 truncate">
