@@ -56,17 +56,17 @@ export default function ChoosePathPage() {
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 text-gray-200 selection:bg-blue-500/30 flex flex-col relative">
       {/* Navigation */}
-      <div className="w-full max-w-7xl mx-auto px-6 py-4 flex flex-row items-center justify-between gap-4 z-20">
+      <div className="w-full max-w-7xl mx-auto px-6 h-16 sm:h-20 relative z-20">
         <button 
           onClick={() => router.push('/#country-selection')}
-          className="p-3 rounded-2xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all group shrink-0"
+          className="absolute left-6 top-1/2 -translate-y-1/2 p-3 rounded-2xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all group shrink-0"
           aria-label="Back to home"
         >
           <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
         </button>
 
         {/* Country Selector/Display aligned in center header */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold shrink-0">
+        <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold shrink-0">
           <Image 
             src={`https://flagcdn.com/w80/${selectedCountry.code.toLowerCase()}.png`} 
             alt={`Flag of ${selectedCountry.name}`}
@@ -78,7 +78,7 @@ export default function ChoosePathPage() {
           <span>{selectedCountry.name}</span>
         </div>
 
-        <div className="shrink-0">
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 shrink-0">
           <LanguageSelector />
         </div>
       </div>
