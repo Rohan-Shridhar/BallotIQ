@@ -34,7 +34,7 @@ export function ProactiveSuggestionBanner({ suggestion, onDismiss }: Props) {
       />
       <div className="flex-1">
         <p className="text-xs sm:text-sm text-blue-100 leading-relaxed pr-2">
-          <TranslatedText text={suggestion.message} />
+          <TranslatedText text={suggestion.message} isStatic={false} />
         </p>
         <div className="mt-2.5 flex items-center gap-2">
           {suggestion.actionHref ? (
@@ -44,7 +44,7 @@ export function ProactiveSuggestionBanner({ suggestion, onDismiss }: Props) {
               className="text-[11px] sm:text-xs px-3 py-1.5 rounded-lg font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors focus-visible:ring-2 focus-visible:ring-white"
               aria-label={suggestion.actionLabel}
             >
-              <TranslatedText text={suggestion.actionLabel} />
+              <TranslatedText text={suggestion.actionLabel} isStatic={false} />
             </Link>
           ) : (
             <button
@@ -52,7 +52,7 @@ export function ProactiveSuggestionBanner({ suggestion, onDismiss }: Props) {
               className="text-[11px] sm:text-xs px-3 py-1.5 rounded-lg font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors focus-visible:ring-2 focus-visible:ring-white"
               aria-label={suggestion.actionLabel}
             >
-              <TranslatedText text={suggestion.actionLabel} />
+              <TranslatedText text={suggestion.actionLabel} isStatic={false} />
             </button>
           )}
           <button

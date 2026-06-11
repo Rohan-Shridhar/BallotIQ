@@ -5,11 +5,13 @@
  * Falls back to a dropdown list if Maps API is unavailable.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { COUNTRIES } from '@/lib/constants/countries';
 import type { Country } from '@/types';
+import { useTranslation } from '@/hooks/useTranslation';
+import TranslatedText from '@/components/ui/TranslatedText';
 
 interface CountrySelectorProps {
   onSelect: (country: Country) => void;
@@ -19,6 +21,22 @@ interface CountrySelectorProps {
 /** Country selector with search and flag display */
 export default function CountrySelector({ onSelect, className = '' }: CountrySelectorProps) {
   const [search, setSearch] = useState('');
+  const { translate, language } = useTranslation();
+  const [translatedPlaceholder, setTranslatedPlaceholder] = useState("Search country...");
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadPlaceholder() {
+      const res = await translate("Search country...");
+      if (isMounted) {
+        setTranslatedPlaceholder(res);
+      }
+    }
+    loadPlaceholder();
+    return () => {
+      isMounted = false;
+    };
+  }, [language, translate]);
 
   const filtered = search
     ? COUNTRIES.filter((c) =>
@@ -35,7 +53,7 @@ export default function CountrySelector({ onSelect, className = '' }: CountrySel
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search country..."
+          placeholder={translatedPlaceholder}
           className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
           aria-label="Search for your country"
           id="country-search"
@@ -58,8 +76,8 @@ export default function CountrySelector({ onSelect, className = '' }: CountrySel
               className="w-8 h-6 object-cover rounded-sm shadow-sm"
             />
             <div>
-              <p className="text-sm font-medium text-white">{country.name}</p>
-              <p className="text-xs text-gray-500">{country.electionType}</p>
+              <p className="text-sm font-medium text-white"><TranslatedText text={country.name} /></p>
+              <p className="text-xs text-gray-500"><TranslatedText text={country.electionType} /></p>
             </div>
           </button>
         ))}
