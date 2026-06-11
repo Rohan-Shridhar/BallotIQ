@@ -64,7 +64,7 @@ export default function CountrySelector({ onSelect, className = '' }: CountrySel
           <button
             key={country.code}
             onClick={() => onSelect(country)}
-            className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-blue-500/30 transition-all duration-200 text-left hover:cursor-pointer"
+            className="flex flex-col sm:flex-row items-start sm:items-center gap-2 px-3 py-3 sm:px-4 sm:py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-blue-500/30 transition-all duration-200 text-left hover:cursor-pointer w-full min-w-0"
             aria-label={`Select ${country.name}`}
           >
             <Image
@@ -73,11 +73,11 @@ export default function CountrySelector({ onSelect, className = '' }: CountrySel
               width={32}
               height={24}
               unoptimized
-              className="w-8 h-6 object-cover rounded-sm shadow-sm"
+              className="w-8 h-6 object-cover rounded-sm shadow-sm flex-shrink-0"
             />
-            <div>
-              <p className="text-sm font-medium text-white"><TranslatedText text={country.name} /></p>
-              <p className="text-xs text-gray-500"><TranslatedText text={country.electionType} /></p>
+            <div className="min-w-0 flex-1 w-full">
+              <p className="text-sm font-medium text-white break-words whitespace-normal"><TranslatedText text={country.name} /></p>
+              <p className="text-xs text-gray-500 break-words whitespace-normal"><TranslatedText text={country.electionType} /></p>
             </div>
           </button>
         ))}

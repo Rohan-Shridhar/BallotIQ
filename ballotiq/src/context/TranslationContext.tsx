@@ -60,12 +60,7 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
   const [language, setLang] = useState<SupportedLanguage>(() => {
     if (typeof window === 'undefined') return 'en';
     const saved = localStorage.getItem('ballotiq_lang') as SupportedLanguage;
-    return (saved && ['en', 'hi', 'te', 'ta', 'fr', 'es', 'de', 'ar'].includes(saved)) ? saved : 'en';
-    if (typeof window === "undefined") return "en";
-    const saved = localStorage.getItem("ballotiq_lang") as SupportedLanguage;
-
-    // Check against the strongly typed VALID_LANGUAGES array
-    return saved && VALID_LANGUAGES.includes(saved) ? saved : "en";
+    return (saved && VALID_LANGUAGES.includes(saved)) ? saved : 'en';
   });
   const [isTranslating, setIsTranslating] = useState(false);
 
@@ -98,23 +93,12 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined') {
         const stored = sessionStorage.getItem('ballotiq_context');
         if (stored) sessionId = JSON.parse(stored).sessionId;
-  const translate = useCallback(
-    async (text: string): Promise<string> => {
-      if (language === "en" || !text) return text;
-      setIsTranslating(true);
-      try {
-        let sessionId: string | undefined;
-        if (typeof window !== "undefined") {
-          const stored = sessionStorage.getItem("ballotiq_context");
-          if (stored) sessionId = JSON.parse(stored).sessionId;
-        }
-        return await translateText(text, language, sessionId);
-      } finally {
-        setIsTranslating(false);
       }
-    },
-    [language],
-  );
+      return await translateText(text, language, sessionId);
+    } finally {
+      setIsTranslating(false);
+    }
+  }, [language]);
 
   const translateMany = useCallback(async (texts: string[], isStatic?: boolean): Promise<string[]> => {
     if (language === 'en' || texts.length === 0) return texts;
@@ -169,23 +153,12 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
       if (typeof window !== 'undefined') {
         const stored = sessionStorage.getItem('ballotiq_context');
         if (stored) sessionId = JSON.parse(stored).sessionId;
-  const translateMany = useCallback(
-    async (texts: string[]): Promise<string[]> => {
-      if (language === "en" || texts.length === 0) return texts;
-      setIsTranslating(true);
-      try {
-        let sessionId: string | undefined;
-        if (typeof window !== "undefined") {
-          const stored = sessionStorage.getItem("ballotiq_context");
-          if (stored) sessionId = JSON.parse(stored).sessionId;
-        }
-        return await translateBatch(texts, language, sessionId);
-      } finally {
-        setIsTranslating(false);
       }
-    },
-    [language],
-  );
+      return await translateBatch(texts, language, sessionId);
+    } finally {
+      setIsTranslating(false);
+    }
+  }, [language]);
 
   return (
     <TranslationContext.Provider
@@ -203,4 +176,3 @@ export function useTranslation() {
   }
   return context;
 }
-

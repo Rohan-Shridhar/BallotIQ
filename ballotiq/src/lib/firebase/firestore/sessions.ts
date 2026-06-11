@@ -110,6 +110,7 @@ export async function saveConversationMetadata(metadata: ConversationMetadata): 
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     const ref = doc(db, 'sessions', metadata.id);
     await setDoc(ref, metadata, { merge: true });
   } catch (error) {
@@ -124,6 +125,7 @@ export async function getUserConversations(userId: string): Promise<Conversation
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return [];
     const sessionsRef = collection(db, 'sessions');
     const q = query(sessionsRef, where('userId', '==', userId));
     const snap = await getDocs(q);
@@ -146,6 +148,7 @@ export async function deleteConversation(sessionId: string): Promise<void> {
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     // Delete the root session document
     const ref = doc(db, 'sessions', sessionId);
     await deleteDoc(ref);
@@ -161,6 +164,7 @@ export async function renameConversation(sessionId: string, newTitle: string): P
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     const ref = doc(db, 'sessions', sessionId);
     await updateDoc(ref, { 
       title: newTitle, 
