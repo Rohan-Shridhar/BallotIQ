@@ -17,7 +17,7 @@ interface ChatEmptyStateProps {
 
 /** Renders the bot greeting and suggested questions when no messages exist yet */
 export default function ChatEmptyState({
-  countryName, mainConfusion, showSuggestions, onSelect,
+  countryName, showSuggestions, onSelect,
 }: ChatEmptyStateProps) {
   return (
     <div className="space-y-6 animate-in fade-in duration-1000">

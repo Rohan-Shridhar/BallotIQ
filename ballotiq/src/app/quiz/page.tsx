@@ -11,7 +11,7 @@ import { ArrowLeft, Zap, MapPin } from 'lucide-react';
 import type { UserContext } from '@/types';
 import { useQuiz } from '@/hooks/useQuiz';
 import { useProgress } from '@/hooks/useProgress';
-import { generatePerformanceInsight } from '@/lib/gemini/client';
+import { apiGeneratePerformanceInsight } from '@/lib/gemini/api';
 import { logQuizComplete } from '@/lib/firebase/analytics';
 import { getFallbackGuide } from '@/lib/gemini/fallback';
 import QuizCard from '@/components/Quiz/QuizCard';
@@ -77,7 +77,7 @@ export default function QuizPage() {
   useEffect(() => {
     if (phase === 'complete' && userContext && results.length > 0) {
       logQuizComplete(score, questions.length, userContext.countryCode);
-      generatePerformanceInsight(
+      apiGeneratePerformanceInsight(
         results, questions, userContext.knowledgeLevel,
         userContext.countryCode, userContext.sessionId
       ).then(setInsight);

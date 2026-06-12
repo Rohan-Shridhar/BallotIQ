@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { 
-  Plus, MessageSquare, Trash2, Edit3, MoreVertical, X, Menu, 
-  ChevronLeft, ChevronRight, Check, AlertTriangle 
+  Plus, MessageSquare, Trash2, Edit3, MoreVertical, X,
+  Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';

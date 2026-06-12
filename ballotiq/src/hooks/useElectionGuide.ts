@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { ElectionStep, LearningSource, UserContext } from '@/types';
-import { generatePersonalizedGuide } from '@/lib/gemini/client';
+import { apiGeneratePersonalizedGuide } from '@/lib/gemini/api';
 import { getFallbackGuide } from '@/lib/gemini/fallback';
 
 interface UseElectionGuideReturn {
@@ -47,7 +47,6 @@ export function useElectionGuide(
     if (countryCode && userContext && steps.length === 0 && source === 'fallback') {
       const fallback = getFallbackGuide(countryCode, userContext.knowledgeLevel);
       if (fallback) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSteps(fallback.map((s, i) => ({
           ...s,
           status: i === 0 ? 'current' as const : 'locked' as const,
@@ -77,7 +76,7 @@ export function useElectionGuide(
       }, 800);
 
       try {
-        const result = await generatePersonalizedGuide(
+        const result = await apiGeneratePersonalizedGuide(
           countryCode,
           userContext!.countryName,
           userContext!.knowledgeLevel,

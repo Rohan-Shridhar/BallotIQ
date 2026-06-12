@@ -6,7 +6,7 @@
 
 import { detectIntent } from './intentEngine';
 import { getFAQResponse } from './faqDatabase';
-import { askAssistant } from '@/lib/gemini/client';
+import { askAssistant } from '@/lib/gemini/assistant';
 import type { ChatMessage, ElectionStep, UserContext } from '@/types';
 import { logger } from '@/lib/logger';
 import { COUNTRIES, getCountryByCode } from '@/lib/constants/countries';

@@ -8,7 +8,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import type { ChatMessage as ChatMessageType, ElectionStep, UserContext } from '@/types';
-import { getAssistantResponse } from '@/lib/assistant/hybridAssistant';
+import { apiGetAssistantResponse } from '@/lib/gemini/api';
 import { saveChatMessage, getChatHistory, saveConversationMetadata } from '@/lib/firebase/firestore';
 import { logAssistantQuestion } from '@/lib/firebase/analytics';
 import { sanitizeUserInput } from '@/lib/security/sanitize';
@@ -125,7 +125,7 @@ export default function ChatWindow({
         onConversationUpdated?.();
       }
 
-      const result = await getAssistantResponse(
+      const result = await apiGetAssistantResponse(
         sanitized,
         userContext,
         completedSteps,

@@ -8,7 +8,7 @@
 
 import { useState, useCallback } from 'react';
 import type { ElectionStep, UserContext } from '@/types';
-import { reExplainConcept } from '@/lib/gemini/client';
+import { apiReExplainConcept } from '@/lib/gemini/api';
 import { saveUserContext } from '@/lib/firebase/firestore';
 import { logAdaptationTriggered } from '@/lib/firebase/analytics';
 
@@ -92,7 +92,7 @@ export function useAdaptiveLearning(
     // Fetch re-explanation from Gemini
     setIsReExplaining(true);
     try {
-      const explanation = await reExplainConcept(
+      const explanation = await apiReExplainConcept(
         step, userAnswer, correctAnswer,
         isNowAdaptive ? 'beginner' : (userContext?.knowledgeLevel ?? 'beginner'),
         userContext?.sessionId

@@ -4,14 +4,14 @@
  * Prevents XSS attacks and prompt injection.
  */
 // Lazy load DOMPurify only on client-side to prevent Next.js SSR / JSDOM bundle resolution errors
-let DOMPurifyInstance: any = null;
+type DOMPurifyType = { sanitize: (input: string, config?: Record<string, unknown>) => string } | null;
+let DOMPurifyInstance: DOMPurifyType = null;
 if (typeof window !== "undefined") {
-  try {
-    const imported = require("isomorphic-dompurify");
-    DOMPurifyInstance = imported.default || imported;
-  } catch (err) {
+  void import("isomorphic-dompurify").then((mod) => {
+    DOMPurifyInstance = (mod.default || mod) as DOMPurifyType;
+  }).catch((err: unknown) => {
     console.error("Failed to load isomorphic-dompurify on client:", err);
-  }
+  });
 }
 
 /** Maximum allowed length for user input */

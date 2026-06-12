@@ -7,7 +7,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ElectionStep, QuizPhase, QuizQuestion, QuizResult, UserContext } from '@/types';
-import { generatePersonalizedQuiz, generateLocalFallbackQuiz } from '@/lib/gemini/client';
+import { generateLocalFallbackQuiz } from '@/lib/gemini/quizUtils';
+import { apiGeneratePersonalizedQuiz } from '@/lib/gemini/api';
 
 interface UseQuizReturn {
   questions: QuizQuestion[];
@@ -61,7 +62,7 @@ export function useQuiz(
     async function loadQuiz() {
       // Don't set loading(true) again if we already have fallback questions
       try {
-        const qs = await generatePersonalizedQuiz(
+        const qs = await apiGeneratePersonalizedQuiz(
           completedSteps,
           userContext!.knowledgeLevel,
           userContext!.countryCode,

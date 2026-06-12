@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import type { AssessmentAnswer, AssessmentPhase, KnowledgeLevel, UserContext } from '@/types';
-import { analyzeAssessment } from '@/lib/gemini/client';
+import { apiAnalyzeAssessment } from '@/lib/gemini/api';
 import { analyzeAssessmentLocally } from '@/lib/assessment/analyzer';
 import { saveUserContext } from '@/lib/firebase/firestore';
 import { authReady } from '@/lib/firebase/client';
@@ -77,7 +77,7 @@ export function useAssessment(
         let finalLevel = localResult.knowledgeLevel;
         let finalStepCount = localResult.recommendedStepCount;
         try {
-          const aiResult = await analyzeAssessment(complete, countryCode, countryName);
+          const aiResult = await apiAnalyzeAssessment(complete, countryCode, countryName);
           finalLevel = aiResult.knowledgeLevel;
           finalStepCount = aiResult.recommendedStepCount;
         } catch {

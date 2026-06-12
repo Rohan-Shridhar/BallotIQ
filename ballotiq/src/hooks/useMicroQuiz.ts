@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { ElectionStep, MicroQuizQuestion, UserContext } from '@/types';
-import { generateMicroQuiz } from '@/lib/gemini/client';
+import { apiGenerateMicroQuiz } from '@/lib/gemini/api';
 
 interface UseMicroQuizReturn {
   question: MicroQuizQuestion | null;
@@ -45,7 +45,6 @@ export function useMicroQuiz(
 
   useEffect(() => {
     if (!step) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuestion(null);
       return;
     }
@@ -60,7 +59,7 @@ export function useMicroQuiz(
     async function fetchQuiz() {
       setLoading(true);
       try {
-        const q = await generateMicroQuiz(
+        const q = await apiGenerateMicroQuiz(
           step!,
           userContext?.knowledgeLevel ?? 'beginner',
           userContext?.sessionId

@@ -1,13 +1,15 @@
 /**
  * Core Gemini API connectivity and retry logic.
+ * SERVER-ONLY: This module must never be imported from client components.
  */
+import 'server-only';
 
 import { GoogleGenerativeAI, HarmBlockThreshold } from "@google/generative-ai";
 import type { SafetySetting } from "@google/generative-ai";
 import { logger } from "@/lib/logger";
 import { incrementUsage } from "@/lib/security/rateLimit";
 
-const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY ?? "";
+const API_KEY = process.env.GEMINI_API_KEY ?? "";
 export const isGeminiEnabled = Boolean(API_KEY) && API_KEY.length > 5;
 
 const MODELS_TO_TRY = [
