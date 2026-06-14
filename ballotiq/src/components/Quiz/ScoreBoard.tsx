@@ -3,6 +3,7 @@
  * Shows score, performance message, and celebratory animation.
  */
 
+import { useState } from 'react';
 import type { QuizResult } from '@/types';
 import KnowledgeMeter from '@/components/Assessment/KnowledgeMeter';
 import type { KnowledgeLevel } from '@/types';
@@ -26,6 +27,25 @@ export default function ScoreBoard({
   const percentage = Math.round((score / total) * 100);
   const isPassing = percentage >= 60;
   const isPerfect = percentage === 100;
+
+  const [copied, setCopied] = useState(false);
+
+  /** Copies a formatted result string to the clipboard. */
+  const handleShare = async () => {
+    if (!navigator?.clipboard) return;
+    const levelLabel = knowledgeLevel.charAt(0).toUpperCase() + knowledgeLevel.slice(1);
+    const text =
+      `🗳️ I just scored ${score}/${total} on BallotIQ's ${countryName} Election Knowledge Quiz!\n` +
+      `Level: ${levelLabel} | ${percentage}% correct\n` +
+      `Learn about your elections: https://ballotiq-61721852903.us-central1.run.app`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Silently ignore clipboard errors (permissions denied, SSR, etc.)
+    }
+  };
 
   const avgTime = results.length > 0
     ? Math.round(results.reduce((sum, r) => sum + r.timeTakenSeconds, 0) / results.length)
@@ -94,16 +114,51 @@ export default function ScoreBoard({
         </div>
       )}
 
-      {/* Shareable badge */}
+      {/* Shareable badge + clipboard button */}
       {isPassing && (
-        <div className="inline-block p-1 rounded-[2.5rem] bg-gradient-to-b from-emerald-500/20 to-transparent">
-          <div className="p-8 bg-[#081508] border border-emerald-500/10 rounded-[2.25rem] shadow-2xl">
-            <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-[0.2em] mb-2"><TranslatedText text="Certificate of Completion" /></p>
-            <p className="text-2xl font-black text-white mb-1">🗳️ <TranslatedText text="BallotIQ Certified" /></p>
-            <p className="text-sm text-emerald-400/60 font-medium">
-              <TranslatedText text={countryName} /> <TranslatedText text="Election Process" /> • {percentage}%
-            </p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="inline-block p-1 rounded-[2.5rem] bg-gradient-to-b from-emerald-500/20 to-transparent">
+            <div className="p-8 bg-[#081508] border border-emerald-500/10 rounded-[2.25rem] shadow-2xl">
+              <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-[0.2em] mb-2"><TranslatedText text="Certificate of Completion" /></p>
+              <p className="text-2xl font-black text-white mb-1">🗳️ <TranslatedText text="BallotIQ Certified" /></p>
+              <p className="text-sm text-emerald-400/60 font-medium">
+                <TranslatedText text={countryName} /> <TranslatedText text="Election Process" /> • {percentage}%
+              </p>
+            </div>
           </div>
+
+          {/* Clipboard share button */}
+          <button
+            id="share-result-btn"
+            onClick={handleShare}
+            aria-label="Copy result to clipboard"
+            className={
+              `inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm
+              border transition-all duration-300 active:scale-95 shadow-lg
+              ${
+                copied
+                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                  : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:scale-105'
+              }`
+            }
+          >
+            {copied ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <TranslatedText text="Copied!" />
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                </svg>
+                <TranslatedText text="Share Result" />
+              </>
+            )}
+          </button>
         </div>
       )}
 
