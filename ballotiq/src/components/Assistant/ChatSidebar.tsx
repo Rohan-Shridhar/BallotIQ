@@ -114,10 +114,10 @@ export default function ChatSidebar({
             return (
               <li key={conv.id} className="relative group/item">
                 {isEditing ? (
-                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 mx-1">
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 mx-1">
                     <input
                       type="text"
-                      className="bg-transparent text-sm text-white focus:outline-none flex-1 font-medium min-w-0"
+                      className="bg-transparent text-sm text-gray-900 dark:text-white focus:outline-none flex-1 font-medium min-w-0"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
                       onBlur={() => handleSaveRename(conv.id)}
@@ -159,14 +159,14 @@ export default function ChatSidebar({
                     className={cn(
                       "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all duration-200 group/btn border text-sm cursor-pointer select-none focus:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500/50",
                       isActive
-                        ? "bg-white/5 border-white/10 text-white shadow-inner font-semibold"
-                        : "border-transparent text-gray-400 hover:bg-white/[0.02] hover:text-white"
+                        ? "bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-indigo-600 dark:text-white shadow-inner font-semibold"
+                        : "border-transparent text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.02] hover:text-gray-900 dark:hover:text-white"
                     )}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <MessageSquare className={cn(
                         "w-4 h-4 shrink-0 transition-colors duration-200",
-                        isActive ? "text-indigo-400" : "text-gray-500 group-hover/btn:text-gray-300"
+                        isActive ? "text-indigo-600 dark:text-indigo-400" : "text-gray-500 dark:text-gray-500 group-hover/btn:text-gray-700 dark:group-hover/btn:text-gray-300"
                       )} />
                       <span className="truncate pr-4">{conv.title || 'New Conversation'}</span>
                     </div>
@@ -179,8 +179,8 @@ export default function ChatSidebar({
                           setActiveMenuId(activeMenuId === conv.id ? null : conv.id);
                         }}
                         className={cn(
-                          "p-1 rounded-md text-gray-500 hover:text-white hover:bg-white/5 transition-opacity duration-200 opacity-0 group-hover/item:opacity-100",
-                          activeMenuId === conv.id && "opacity-100 bg-white/5 text-white"
+                          "p-1 rounded-md text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-opacity duration-200 opacity-0 group-hover/item:opacity-100",
+                          activeMenuId === conv.id && "opacity-100 bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white"
                         )}
                         aria-label="Conversation actions"
                       >
@@ -191,18 +191,18 @@ export default function ChatSidebar({
                       {activeMenuId === conv.id && (
                         <div 
                           ref={menuRef}
-                          className="absolute right-0 top-7 w-32 glass rounded-xl border border-white/10 shadow-2xl z-[100] py-1 animate-in fade-in duration-100"
+                          className="absolute right-0 top-7 w-32 glass rounded-xl border border-gray-200 dark:border-white/10 shadow-2xl z-[100] py-1 animate-in fade-in duration-100"
                         >
                           <button
                             onClick={(e) => handleStartRename(conv.id, conv.title, e)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-300 hover:text-white hover:bg-white/5 text-left font-semibold"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 text-left font-semibold"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                             Rename
                           </button>
                           <button
                             onClick={(e) => handleDeleteClick(conv.id, e)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-left font-semibold"
+                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-left font-semibold"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             Delete
@@ -245,7 +245,7 @@ export default function ChatSidebar({
         {/* Header & New Chat button */}
         <div className="p-4 border-b border-white/5 flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-black text-white uppercase tracking-wider">Chat History</span>
+            <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">Chat History</span>
             <Button
               variant="ghost"
               size="sm"
@@ -260,7 +260,7 @@ export default function ChatSidebar({
             variant="outline"
             size="sm"
             onClick={onNewChat}
-            className="w-full justify-start py-2 px-3 hover-glow border border-indigo-500/20 hover:border-indigo-500/40 bg-indigo-500/5 text-white"
+            className="w-full justify-start py-2 px-3 hover-glow border border-indigo-500/20 dark:border-indigo-500/20 hover:border-indigo-500/40 dark:hover:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-500/5 text-indigo-600 dark:text-white hover:bg-indigo-100 dark:hover:bg-indigo-500/10"
           >
             <Plus className="w-4 h-4 mr-2 text-indigo-400" />
             <span>New Chat</span>

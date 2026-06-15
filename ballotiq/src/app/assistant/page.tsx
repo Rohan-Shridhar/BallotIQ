@@ -15,6 +15,7 @@ import { getFallbackGuide } from '@/lib/gemini/fallback';
 import ChatWindow from '@/components/Assistant/ChatWindow';
 import KnowledgeMeter from '@/components/Assessment/KnowledgeMeter';
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import TranslatedText from '@/components/ui/TranslatedText';
 import { getCountryByCode } from '@/lib/constants/countries';
@@ -154,12 +155,12 @@ export default function AssistantPage() {
   return (
     <div className="h-[100dvh] flex flex-col bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 text-gray-200 selection:bg-blue-500/30 overflow-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-50 flex-shrink-0 bg-gray-950/80 backdrop-blur-xl border-b border-white/5 shadow-2xl">
+      <header className="sticky top-0 z-50 flex-shrink-0 bg-white/90 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5 shadow-sm dark:shadow-2xl">
         <div className="max-w-[1600px] mx-auto px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <button
               onClick={() => router.back()}
-              className="p-2.5 rounded-2xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all group shadow-sm flex-shrink-0"
+              className="p-2.5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all group shadow-sm flex-shrink-0"
               aria-label="Go back"
             >
               <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -167,18 +168,18 @@ export default function AssistantPage() {
 
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2.5 rounded-2xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all shadow-sm flex-shrink-0 md:hidden"
+              className="p-2.5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all shadow-sm flex-shrink-0 md:hidden"
               aria-label="Toggle history"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <h1 className="text-sm sm:text-lg font-black text-white tracking-tight leading-none whitespace-nowrap hidden xs:block">
+            <h1 className="text-sm sm:text-lg font-black text-gray-900 dark:text-white tracking-tight leading-none whitespace-nowrap hidden xs:block">
               <TranslatedText text="Assistant" />
             </h1>
 
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 shadow-inner">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 shadow-inner">
                 <Image
                   src={`https://flagcdn.com/w80/${userContext.countryCode.toLowerCase()}.png`}
                   alt={`Flag of ${userContext.countryName}`}
@@ -187,7 +188,7 @@ export default function AssistantPage() {
                   unoptimized
                   className="w-5 h-3.5 object-cover rounded-sm"
                 />
-                <span className="text-sm font-bold text-white tracking-tight leading-none whitespace-nowrap truncate max-w-[80px] sm:max-w-none">
+                <span className="text-sm font-bold text-gray-900 dark:text-white tracking-tight leading-none whitespace-nowrap truncate max-w-[80px] sm:max-w-none">
                   <TranslatedText text={userContext.countryName} />
                 </span>
               </div>
@@ -200,24 +201,25 @@ export default function AssistantPage() {
           </div>
 
           <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="hidden md:flex items-center gap-2 text-xs font-medium text-blue-400/80">
+            <div className="hidden md:flex items-center gap-2 text-xs font-medium text-blue-600 dark:text-blue-400/80">
               <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
               <TranslatedText text="BallotIQ AI Active" />
             </div>
+            <ThemeToggle />
             <LanguageSelector />
           </div>
         </div>
       </header>
 
       {/* Disclaimer */}
-      <div className="flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500/5 border-b border-amber-500/10">
-        <p className="text-[10px] sm:text-[11px] text-amber-400/80 text-center max-w-2xl mx-auto leading-snug">
+      <div className="flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500/5 border-b border-amber-500/15">
+        <p className="text-[10px] sm:text-[11px] text-amber-800 dark:text-amber-400/80 text-center max-w-2xl mx-auto leading-snug">
           <TranslatedText text="BallotIQ provides educational information only. For official guidance, visit" />{' '}
           <a
             href={countryInfo?.electionBodyUrl || `https://www.google.com/search?q=${userContext.countryName}+election+commission`}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-amber-300 font-bold"
+            className="underline hover:text-amber-600 dark:hover:text-amber-300 font-bold"
           >
             <TranslatedText text={countryInfo?.electionBody || "your official election body"} />
           </a>.
