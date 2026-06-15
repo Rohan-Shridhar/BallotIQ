@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { KnowledgeLevel, SupportedLanguage, UserProgress } from '@/types';
 import { saveProgress, getProgress } from '@/lib/firebase/firestore';
 import { authReady } from '@/lib/firebase/client';
+import { offlineDB, STORES } from '@/lib/offline/db';
 
 /** localStorage key for session ID */
 const SESSION_KEY = 'ballotiq_session_id';
@@ -60,12 +61,23 @@ export function useProgress(
   // Restore progress on mount
   useEffect(() => {
     async function restore() {
+      // 1. Try Offline DB first for immediate response
+      try {
+        const localSaved = await offlineDB.get<UserProgress>(STORES.PROGRESS, sessionId);
+        if (localSaved && localSaved.countryCode === countryCode && localSaved.knowledgeLevel === knowledgeLevel) {
+          setProgress(localSaved);
+        }
+      } catch { /* ignore */ }
+
+      // 2. Sync with Firestore
       try {
         await authReady;
         const saved = await getProgress(sessionId);
         if (saved && saved.countryCode === countryCode && saved.knowledgeLevel === knowledgeLevel) {
+          // If Firestore is newer or we don't have local, update local
           setProgress(saved);
-        } else {
+          offlineDB.set(STORES.PROGRESS, sessionId, saved).catch(() => {});
+        } else if (!progress) {
           const initial: UserProgress = {
             sessionId, countryCode, completedSteps: [],
             microQuizResults: {}, knowledgeLevel,
@@ -75,25 +87,33 @@ export function useProgress(
           setProgress(initial);
         }
       } catch {
-        setProgress({
-          sessionId, countryCode, completedSteps: [],
-          microQuizResults: {}, knowledgeLevel,
-          language: 'en', adaptationActive: false,
-          lastUpdated: new Date().toISOString(),
-        });
+        if (!progress) {
+          setProgress({
+            sessionId, countryCode, completedSteps: [],
+            microQuizResults: {}, knowledgeLevel,
+            language: 'en', adaptationActive: false,
+            lastUpdated: new Date().toISOString(),
+          });
+        }
       }
     }
     if (!sessionId) return;
     restore();
-  }, [sessionId, countryCode, knowledgeLevel]);
+  }, [sessionId, countryCode, knowledgeLevel, progress]);
 
   const persist = useCallback(async (updated: UserProgress) => {
     setProgress(updated);
+    // Always save to Offline DB
+    try {
+      await offlineDB.set(STORES.PROGRESS, sessionId, updated);
+    } catch { /* ignore */ }
+
+    // Try to sync to Firestore
     try { 
       await authReady;
       await saveProgress(updated); 
     } catch { /* non-critical */ }
-  }, []);
+  }, [sessionId]);
 
   /** Marks a step as finished and persists the updated progress. */
   const completeStep = useCallback((stepId: string) => {

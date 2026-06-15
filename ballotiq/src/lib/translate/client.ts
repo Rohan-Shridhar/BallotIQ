@@ -8,6 +8,7 @@ import type { SupportedLanguage } from '@/types';
 import { logger } from '@/lib/logger';
 import { withTrace } from '@/lib/firebase/performance';
 import { checkRateLimit, incrementUsage } from '@/lib/security/rateLimit';
+import { offlineDB, STORES } from '@/lib/offline/db';
 
 /** In-memory translation cache: key = `${text}:${lang}` */
 const translationCache = new Map<string, string>();
@@ -42,6 +43,19 @@ export async function translateText(
     const cached = translationCache.get(cacheKey);
     if (cached) return cached;
 
+    // Check IndexedDB
+    try {
+      if (typeof window !== 'undefined') {
+        const dbCached = await offlineDB.get<string>(STORES.TRANSLATIONS, cacheKey);
+        if (dbCached) {
+          translationCache.set(cacheKey, dbCached);
+          return dbCached;
+        }
+      }
+    } catch (e) {
+      console.warn('[OfflineDB] Failed to read translation', e);
+    }
+
     if (!API_KEY) {
       logger.error('API Key is missing. Set NEXT_PUBLIC_TRANSLATE_API_KEY.', null, { component: 'TranslateClient' });
       return text;
@@ -71,6 +85,12 @@ export async function translateText(
 
       const translated = data.data.translations[0].translatedText;
       translationCache.set(cacheKey, translated);
+      
+      // Save to IndexedDB
+      if (typeof window !== 'undefined') {
+        offlineDB.set(STORES.TRANSLATIONS, cacheKey, translated).catch(() => {});
+      }
+
       await incrementUsage(sessionId ?? 'translate', 'translate');
       return translated;
     } catch (error) {
@@ -94,15 +114,27 @@ export async function translateBatch(
     const uncached: { index: number; text: string }[] = [];
     const results = [...texts];
 
-    texts.forEach((text, i) => {
+    for (let i = 0; i < texts.length; i++) {
+      const text = texts[i];
       const cacheKey = `${text}:${targetLang}`;
       const cached = translationCache.get(cacheKey);
       if (cached) {
         results[i] = cached;
       } else if (text.trim()) {
+        // Try IndexedDB first
+        if (typeof window !== 'undefined') {
+          try {
+            const dbCached = await offlineDB.get<string>(STORES.TRANSLATIONS, cacheKey);
+            if (dbCached) {
+              results[i] = dbCached;
+              translationCache.set(cacheKey, dbCached);
+              continue;
+            }
+          } catch {}
+        }
         uncached.push({ index: i, text });
       }
-    });
+    }
 
     if (uncached.length === 0) return results;
 
@@ -131,11 +163,18 @@ export async function translateBatch(
         hasLoggedFirstResponse = true;
       }
 
+      const dbPromises: Promise<void>[] = [];
       data.data.translations.forEach((t, i) => {
         const entry = uncached[i];
         results[entry.index] = t.translatedText;
         translationCache.set(`${entry.text}:${targetLang}`, t.translatedText);
+        
+        if (typeof window !== 'undefined') {
+          dbPromises.push(offlineDB.set(STORES.TRANSLATIONS, `${entry.text}:${targetLang}`, t.translatedText));
+        }
       });
+      
+      Promise.all(dbPromises).catch(() => {});
       await incrementUsage(sessionId ?? 'translate', 'translate');
     } catch (error) {
       logger.error('Batch translation failed', error, { component: 'TranslateClient' });
