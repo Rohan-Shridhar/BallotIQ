@@ -7,6 +7,7 @@ import { buildPersonalizedGuidePrompt } from './prompts';
 import { parseGeminiJSON, isElectionStepsArray } from './validator';
 import { getFallbackGuide } from './fallback';
 import { getCachedGuide, cacheElectionGuide } from '@/lib/firebase/firestore';
+import { offlineDB, STORES } from '@/lib/offline/db';
 import { authReady } from '@/lib/firebase/client';
 import { withTrace } from '@/lib/firebase/performance';
 import { logger } from '@/lib/logger';
@@ -23,15 +24,30 @@ export async function generatePersonalizedGuide(
   userConfusion: string,
   sessionId?: string,
   stepCount?: number,
-): Promise<{ steps: ElectionStep[]; source: 'gemini' | 'cache' | 'fallback' }> {
+): Promise<{ steps: ElectionStep[]; source: 'gemini' | 'cache' | 'fallback' | 'offline_cache' }> {
   return withTrace(
     'gemini_generate_guide',
     { countryCode, knowledgeLevel },
     async () => {
+      // 1. Try Offline Cache (IndexedDB)
+      try {
+        if (typeof window !== 'undefined') {
+          const offlineCached = await offlineDB.get<ElectionStep[]>(STORES.GUIDES, `${countryCode}_${knowledgeLevel}`);
+          if (offlineCached && offlineCached.length >= 5) {
+            return { steps: offlineCached, source: 'offline_cache' };
+          }
+        }
+      } catch { /* ignore */ }
+
+      // 2. Try Firestore Cache
       try {
         await authReady;
         const cached = await getCachedGuide(countryCode, knowledgeLevel);
         if (cached && cached.length >= 5) {
+          // Sync to offline cache
+          if (typeof window !== 'undefined') {
+            offlineDB.set(STORES.GUIDES, `${countryCode}_${knowledgeLevel}`, cached).catch(() => {});
+          }
           return { steps: cached, source: 'cache' };
         }
         if (cached) {
@@ -45,11 +61,22 @@ export async function generatePersonalizedGuide(
       const prompt = buildPersonalizedGuidePrompt(
         countryCode, countryName, knowledgeLevel, sanitizedFocusAreas, sanitizedConfusion, stepCount
       );
+
+      // If offline, don't even try Gemini
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return { steps: getFallbackGuide(countryCode, knowledgeLevel) ?? [], source: 'fallback' };
+      }
+
       const raw = await callGemini(prompt, sessionId ?? 'guide', false, undefined, 2048);
       if (raw) {
         const steps = parseGeminiJSON(raw, isElectionStepsArray, []);
         if (steps.length >= 5) {
-          try { await cacheElectionGuide(countryCode, knowledgeLevel, steps); } catch { /* ignore */ }
+          try { 
+            await cacheElectionGuide(countryCode, knowledgeLevel, steps);
+            if (typeof window !== 'undefined') {
+              offlineDB.set(STORES.GUIDES, `${countryCode}_${knowledgeLevel}`, steps).catch(() => {});
+            }
+          } catch { /* ignore */ }
           return { steps, source: 'gemini' };
         }
         logger.warn('Gemini returned insufficient steps', {
@@ -61,6 +88,11 @@ export async function generatePersonalizedGuide(
       return { steps: getFallbackGuide(countryCode, knowledgeLevel) ?? [], source: 'fallback' };
     }
   );
+}
+
+function sanitizeUserInput(input: string): string {
+  if (!input) return '';
+  return input.replace(/[<>]/g, '').slice(0, 500);
 }
 
 /**
@@ -84,4 +116,5 @@ export async function generatePersonalizedGuideStream(
 
   return callGeminiStream(prompt, sessionId ?? 'guide', false, undefined, 2048);
 }
+
 

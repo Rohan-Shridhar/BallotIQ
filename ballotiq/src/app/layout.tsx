@@ -4,6 +4,8 @@ import { Sora, Inter } from 'next/font/google';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 import { TranslationProvider } from '@/context/TranslationContext';
 import StartupDiagnostics from '@/components/ui/StartupDiagnostics';
+import OfflineBanner from '@/components/ui/OfflineBanner';
+import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 import './globals.css';
 import BackToTop from '@/components/BackToTop';
 
@@ -77,6 +79,8 @@ export default function RootLayout({
           Skip to main content
         </a>
         <TranslationProvider>
+          <ServiceWorkerRegistration />
+          <OfflineBanner />
           <StartupDiagnostics />
           <main id="main-content">
             <Suspense fallback={<div className="min-h-screen bg-gray-950 flex items-center justify-center"><LoadingSkeleton lines={10} /></div>}>

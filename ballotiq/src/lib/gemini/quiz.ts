@@ -9,6 +9,7 @@ import { sanitizeAIResponse } from '@/lib/security/sanitize';
 import { logger } from '@/lib/logger';
 import { callGemini, callGeminiQuiz } from './core';
 import { generateLocalFallbackQuiz } from './quizUtils';
+import { offlineDB, STORES } from '@/lib/offline/db';
 
 /**
  * Generates a micro-quiz question for a specific step.
@@ -41,8 +42,25 @@ export async function generatePersonalizedQuiz(
   countryCode: string,
   sessionId?: string,
 ): Promise<QuizQuestion[]> {
+  const cacheKey = `quiz_${countryCode}_${knowledgeLevel}`;
+  
+  // 1. Try Offline Cache
+  try {
+    if (typeof window !== 'undefined') {
+      const offlineCached = await offlineDB.get<QuizQuestion[]>(STORES.QUIZZES, cacheKey);
+      if (offlineCached && offlineCached.length >= 8) {
+        return offlineCached;
+      }
+    }
+  } catch { /* ignore */ }
+
   const fallback = generateLocalFallbackQuiz(completedSteps, knowledgeLevel);
   if (completedSteps.length === 0) return [];
+
+  // If offline, return fallback
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return fallback;
+  }
 
   const prompt = buildPersonalizedQuizPrompt(completedSteps, knowledgeLevel, countryCode);
   const raw = await callGeminiQuiz(prompt, sessionId ?? 'finalquiz');
@@ -58,7 +76,13 @@ export async function generatePersonalizedQuiz(
       }
     }
 
-    if (uniqueQuestions.length >= 10) return uniqueQuestions.slice(0, 10);
+    if (uniqueQuestions.length >= 10) {
+      const result = uniqueQuestions.slice(0, 10);
+      if (typeof window !== 'undefined') {
+        offlineDB.set(STORES.QUIZZES, cacheKey, result).catch(() => {});
+      }
+      return result;
+    }
     logger.warn('AI returned duplicate or insufficient quiz questions, using fallback', {
       countryCode, originalCount: String(questions.length), uniqueCount: String(uniqueQuestions.length)
     });

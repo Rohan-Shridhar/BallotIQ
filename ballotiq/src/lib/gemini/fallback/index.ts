@@ -4,6 +4,7 @@ import { US_BEGINNER } from './usa';
 import { GB_BEGINNER, FR_BEGINNER, DE_BEGINNER } from './europe';
 import { SA_BEGINNER } from './middleeast';
 import { BR_BEGINNER, AU_BEGINNER, CA_BEGINNER } from './americas-oceania';
+import { JP_BEGINNER, ZA_BEGINNER } from './africa-asia';
 
 /**
  * Registry of static fallback guides for major countries.
@@ -19,6 +20,8 @@ export const FALLBACK_GUIDES: Record<string, Record<KnowledgeLevel, ElectionStep
   BR: { beginner: BR_BEGINNER, intermediate: BR_BEGINNER, advanced: BR_BEGINNER.slice(0, 3) },
   AU: { beginner: AU_BEGINNER, intermediate: AU_BEGINNER, advanced: AU_BEGINNER.slice(0, 3) },
   CA: { beginner: CA_BEGINNER, intermediate: CA_BEGINNER, advanced: CA_BEGINNER.slice(0, 3) },
+  JP: { beginner: JP_BEGINNER, intermediate: JP_BEGINNER, advanced: JP_BEGINNER.slice(0, 3) },
+  ZA: { beginner: ZA_BEGINNER, intermediate: ZA_BEGINNER, advanced: ZA_BEGINNER.slice(0, 3) },
 };
 
 /**
