@@ -72,7 +72,23 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
-    
+
+    // Assistant routing telemetry — append-only from authenticated sessions.
+    // Reads are blocked; this collection is for observability only.
+    match /assistant_routing/{eventId} {
+      allow read: if false;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll([
+             'countryCode', 'intent', 'confidence', 'routedTo', 'sessionId', 'timestamp'
+           ])
+        && request.resource.data.sessionId == request.auth.uid
+        && request.resource.data.confidence is number
+        && request.resource.data.confidence >= 0.0
+        && request.resource.data.confidence <= 1.0
+        && request.resource.data.routedTo in ['faq', 'ai', 'fallback'];
+      allow update, delete: if false;
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

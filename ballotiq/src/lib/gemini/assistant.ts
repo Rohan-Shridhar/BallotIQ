@@ -45,12 +45,20 @@ New Summary:`;
 
 /**
  * Conversational assistant with full user context.
+ *
+ * @param question - Raw user question
+ * @param userContext - Session and country context
+ * @param completedSteps - Steps the user has already completed
+ * @param chatHistory - Prior messages in this conversation
+ * @param intentHint - Optional low-confidence intent from the intent engine,
+ *   forwarded so Gemini can focus its answer even when the FAQ has no coverage.
  */
 export async function askAssistant(
   question: string,
   userContext: UserContext,
   completedSteps: ElectionStep[],
   chatHistory: ChatMessage[],
+  intentHint?: string,
 ): Promise<string> {
   return withTrace(
     'gemini_assistant_response',
@@ -91,7 +99,11 @@ export async function askAssistant(
 
       const systemPrompt = buildAssistantSystemPrompt(userContext, completedSteps, chatHistory.length, summary);
       const sanitizedQuestion = sanitizeUserInput(question);
-      const userMessage = buildAssistantUserMessage(sanitizedQuestion, chatHistory);
+      // Prepend the intent hint to help Gemini focus when FAQ had no coverage.
+      const hintPrefix = intentHint
+        ? `[Topic hint: ${intentHint.replace(/_/g, ' ')}] `
+        : '';
+      const userMessage = buildAssistantUserMessage(hintPrefix + sanitizedQuestion, chatHistory);
 
       try {
         const raw = await callGemini(userMessage, userContext.sessionId, true, systemPrompt, 1024);

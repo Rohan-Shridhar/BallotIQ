@@ -6,3 +6,4 @@
 export * from './sessions';
 export * from './cache';
 export * from './rateLimit';
+export * from './telemetry';
