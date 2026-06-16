@@ -3,6 +3,7 @@
 import { ArrowLeft, BookOpen, MapPin, MessageCircle, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import TranslatedText from '@/components/ui/TranslatedText';
 import type { KnowledgeLevel } from '@/types';
 
@@ -89,6 +90,7 @@ export default function LearnPageHeader({
             <MessageCircle className="w-4 h-4" />
             <span><TranslatedText text="AI Assistant" /></span>
           </button>
+          <ThemeToggle />
           <LanguageSelector />
         </div>
       </div>

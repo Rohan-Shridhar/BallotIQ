@@ -12,6 +12,7 @@ import { authReady } from '@/lib/firebase/client';
 import { withTrace } from '@/lib/firebase/performance';
 import { logger } from '@/lib/logger';
 import { callGemini, callGeminiStream } from './core';
+import { sanitizeUserInput } from '@/lib/security/sanitize';
 
 /**
  * Generates election steps personalized to user's knowledge level.

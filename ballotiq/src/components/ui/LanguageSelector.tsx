@@ -122,7 +122,7 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-[#070718] border border-white/10 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
+          className="language-dropdown absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-[#070718] border border-white/10 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
           role="listbox"
           id="language-listbox"
         >

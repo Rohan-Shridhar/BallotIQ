@@ -12,6 +12,7 @@ const PollingStationFinder = dynamic(
   { ssr: false, loading: () => <div className="h-64 animate-pulse bg-white/5 rounded-xl" /> }
 );
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import TranslatedText from '@/components/ui/TranslatedText';
 import BottomNav from '@/components/ui/BottomNav';
 
@@ -59,6 +60,7 @@ export default function PollingStationsPage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <ThemeToggle />
             <LanguageSelector />
           </div>
         </div>

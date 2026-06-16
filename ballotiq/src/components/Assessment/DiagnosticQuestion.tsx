@@ -159,7 +159,7 @@ export default function DiagnosticQuestion({
               }
             }}
             placeholder="e.g. How does vote counting work? What is a constituency?"
-            className="w-full h-32 sm:h-40 px-4 sm:px-6 py-4 sm:py-6 pr-14 sm:pr-16 bg-[#080815] rounded-[1.4rem] sm:rounded-[1.9rem] text-white placeholder-gray-600 resize-none focus:outline-none transition-all text-base sm:text-lg leading-relaxed"
+            className="diagnostic-textarea w-full h-32 sm:h-40 px-4 sm:px-6 py-4 sm:py-6 pr-14 sm:pr-16 bg-[#080815] rounded-[1.4rem] sm:rounded-[1.9rem] text-white placeholder-gray-600 resize-none focus:outline-none transition-all text-base sm:text-lg leading-relaxed"
             aria-labelledby="q3-heading"
             aria-describedby="char-counter q3-keyboard-hint"
             maxLength={maxChars}

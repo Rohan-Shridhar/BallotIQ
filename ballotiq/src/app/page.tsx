@@ -19,6 +19,7 @@ const PollingStationFinder = dynamic(
 );
 import { getCountryByCode } from '@/lib/constants/countries';
 const LanguageSelector = dynamic(() => import('@/components/ui/LanguageSelector'), { ssr: false });
+import ThemeToggle from '@/components/ui/ThemeToggle';
 const CountrySelector = dynamic(() => import('@/components/Location/CountrySelector'), { ssr: false });
 import FeatureGrid from '@/components/Home/FeatureGrid';
 import StatsRow from '@/components/Home/StatsRow';
@@ -67,6 +68,8 @@ export default function HomePage() {
               <TranslatedText text="Live Map" />
             </a>
             <div className="border-l border-white/10 h-5 mx-1 sm:mx-2" />
+            <ThemeToggle />
+            <div className="border-l border-white/10 h-5 mx-1 sm:mx-2" />
             <LanguageSelector />
           </div>
 
@@ -98,6 +101,11 @@ export default function HomePage() {
               >
                 <TranslatedText text="Live Map" />
               </a>
+              <div className="border-t border-white/5 my-2" />
+              <div className="flex justify-between items-center px-3">
+                <span className="text-xs text-gray-400 font-medium"><TranslatedText text="Theme" /></span>
+                <ThemeToggle />
+              </div>
               <div className="border-t border-white/5 my-2" />
               <div className="flex justify-between items-center px-3">
                 <span className="text-xs text-gray-400 font-medium"><TranslatedText text="Language" /></span>

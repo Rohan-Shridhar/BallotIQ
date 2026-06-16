@@ -125,6 +125,7 @@ export async function getConversationMetadata(sessionId: string): Promise<Conver
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return null;
     const ref = doc(db, 'sessions', sessionId);
     const snap = await getDoc(ref);
     return snap.exists() ? (snap.data() as ConversationMetadata) : null;

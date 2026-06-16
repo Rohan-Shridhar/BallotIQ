@@ -34,7 +34,7 @@ export default function ChatInput({
   const isOffline = useOffline();
 
   return (
-    <div className="p-3 sm:p-4 border-t border-white/10 bg-[#020617]/70">
+    <div className="chat-input-wrapper p-3 sm:p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[#020617]/70 backdrop-blur-xl">
       <div className="flex gap-2 sm:gap-3">
         <div className="flex-1 relative group">
           <textarea
@@ -42,7 +42,7 @@ export default function ChatInput({
             onChange={(e) => setInput(e.target.value.slice(0, MAX_CHAT_INPUT_LENGTH))}
             onKeyDown={onKeyDown}
             placeholder={isOffline ? "Chat unavailable offline" : (isListening ? "Listening..." : "Ask about elections...")}
-            className={`w-full px-4 sm:px-5 py-3 sm:py-3.5 pr-12 sm:pr-14 bg-white/[0.04] border ${isListening ? 'border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : (isOffline ? 'border-amber-500/20' : 'border-white/10')} rounded-xl sm:rounded-2xl text-sm sm:text-[15px] text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all`}
+            className={`chat-textarea w-full px-4 sm:px-5 py-3 sm:py-3.5 pr-12 sm:pr-14 bg-gray-50 dark:bg-white/[0.04] border ${isListening ? 'border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]' : (isOffline ? 'border-amber-500/20' : 'border-gray-200 dark:border-white/10')} rounded-xl sm:rounded-2xl text-sm sm:text-[15px] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all`}
             rows={1}
             aria-label="Type your question"
             disabled={isLoading || isOffline}
@@ -58,8 +58,8 @@ export default function ChatInput({
           disabled={isLoading || isOffline}
           className={`group px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 flex items-center justify-center flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
             isListening 
-              ? 'bg-red-500/20 text-red-300 border border-red-500/40' 
-              : 'bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 disabled:opacity-30'
+              ? 'bg-red-500/20 text-red-600 dark:text-red-300 border border-red-500/40' 
+              : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10 disabled:opacity-30'
           }`}
           title={isListening ? "Stop voice input" : "Start voice input"}
           aria-label={isListening ? 'Stop listening' : 'Start voice input'}
@@ -74,7 +74,7 @@ export default function ChatInput({
             onSendMessage(input);
           }}
           disabled={!input.trim() || isLoading || isOffline}
-          className="group px-4 sm:px-6 bg-white text-black rounded-xl sm:rounded-2xl hover:scale-[1.03] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-white/10 flex-shrink-0"
+          className="group px-4 sm:px-6 bg-gray-200 text-blue-400 dark:bg-white dark:text-black rounded-xl sm:rounded-2xl hover:scale-[1.03] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-black/5 dark:shadow-white/10 flex-shrink-0 flex items-center justify-center"
           aria-label="Send message"
         >
           <Send className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -99,4 +99,3 @@ export default function ChatInput({
     </div>
   );
 }
-

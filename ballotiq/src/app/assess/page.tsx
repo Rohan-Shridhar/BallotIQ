@@ -14,6 +14,7 @@ import { useAssessment } from '@/hooks/useAssessment';
 import { useProgress } from '@/hooks/useProgress';
 import { useTTS } from '@/hooks/useTTS';
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import type { Country } from '@/types';
 import Image from 'next/image';
 
@@ -96,6 +97,7 @@ function AssessmentFlow({ country, sessionId }: { country: Country; sessionId: s
             />
             <span className="text-sm text-gray-400">{country.name}</span>
           </div>
+          <ThemeToggle />
           <LanguageSelector />
         </div>
       </header>

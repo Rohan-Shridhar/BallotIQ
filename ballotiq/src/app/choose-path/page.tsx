@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, MessageSquare, Map, Mic } from 'lucide-react';
 import Image from 'next/image';
 import TranslatedText from '@/components/ui/TranslatedText';
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import type { Country, UserContext } from '@/types';
 
 /**
@@ -78,7 +79,8 @@ export default function ChoosePathPage() {
           <span>{selectedCountry.name}</span>
         </div>
 
-        <div className="absolute right-6 top-1/2 -translate-y-1/2 shrink-0">
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 shrink-0 flex items-center gap-2">
+          <ThemeToggle />
           <LanguageSelector />
         </div>
       </div>
@@ -100,7 +102,7 @@ export default function ChoosePathPage() {
             onClick={startOpenChat}
             className="group relative p-1 rounded-[2.5rem] bg-gradient-to-br from-blue-500 to-indigo-600 hover:scale-[1.02] transition-all duration-500 shadow-[0_0_50px_rgba(59,130,246,0.2)]"
           >
-            <div className="relative h-full p-8 sm:p-10 rounded-[2.25rem] bg-[#080815] flex flex-col items-center text-center space-y-6 overflow-hidden">
+            <div className="path-card-body relative h-full p-8 sm:p-10 rounded-[2.25rem] bg-[#080815] flex flex-col items-center text-center space-y-6 overflow-hidden">
               {/* Decorative Glow */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors" />
               
@@ -129,7 +131,7 @@ export default function ChoosePathPage() {
             onClick={startGuidedPath}
             className="group p-1 rounded-[2.5rem] bg-white/5 hover:bg-white/10 transition-all duration-500 hover:scale-[1.02]"
           >
-            <div className="p-8 sm:p-10 rounded-[2.25rem] bg-[#050510] border border-white/5 h-full flex flex-col items-center text-center space-y-6">
+            <div className="path-card-body p-8 sm:p-10 rounded-[2.25rem] bg-[#050510] border border-white/5 h-full flex flex-col items-center text-center space-y-6">
               <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:-rotate-6 transition-transform">
                 <Map className="w-10 h-10 text-gray-300" />
               </div>

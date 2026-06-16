@@ -144,6 +144,7 @@ export interface RateLimitState {
   geminiCallsToday: number;
   translateCallsToday: number;
   ttsCallsToday: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lastResetAt: any;
 }
 

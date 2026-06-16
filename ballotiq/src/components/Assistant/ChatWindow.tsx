@@ -174,10 +174,10 @@ export default function ChatWindow({
 
   return (
     <ErrorBoundary componentName="ChatWindow">
-      <div className="flex flex-col min-h-0 h-full rounded-none md:rounded-[1.75rem] border-y border-x-0 md:border border-white/10 bg-white/[0.02] backdrop-blur-xl shadow-2xl overflow-hidden">
+      <div className="flex flex-col min-h-0 h-full rounded-none md:rounded-[1.75rem] border-y border-x-0 md:border border-gray-200 dark:border-white/10 bg-white/60 dark:bg-white/[0.02] backdrop-blur-xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="px-4 sm:px-5 py-3 border-b border-white/10 flex items-center justify-between gap-3">
-          <p className="text-xs text-gray-400 truncate">
+        <div className="px-4 sm:px-5 py-3 border-b border-gray-200 dark:border-white/10 flex items-center justify-between gap-3 bg-gray-50/50 dark:bg-transparent">
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium">
             <TranslatedText text="Personalized for" /> {userContext.countryName} • <TranslatedText text={userContext.knowledgeLevel} /> <TranslatedText text="level" />
           </p>
           <AIStatusBadge mode={isLoading ? 'live' : 'cached'} />
@@ -185,7 +185,7 @@ export default function ChatWindow({
 
         {/* Messages */}
         <div 
-          className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-transparent to-[#030712]/40"
+          className="chat-messages-container flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-transparent to-gray-100/30 dark:to-[#030712]/40"
           role="log"
           aria-live="polite"
           aria-label="Conversation"

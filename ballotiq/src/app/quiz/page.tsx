@@ -20,6 +20,7 @@ import QuizWarningModal from '@/components/Quiz/QuizWarningModal';
 import ProgressDots from '@/components/Quiz/ProgressDots';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import TranslatedText from '@/components/ui/TranslatedText';
 import BottomNav from '@/components/ui/BottomNav';
@@ -126,6 +127,7 @@ export default function QuizPage() {
               <MapPin className="w-3.5 h-3.5" />
               <TranslatedText text="Find Polling Stations" />
             </button>
+            <ThemeToggle />
             <LanguageSelector />
           </div>
         </div>
