@@ -8,7 +8,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { KnowledgeLevel, SupportedLanguage, UserProgress } from '@/types';
 import { saveProgress, getProgress } from '@/lib/firebase/firestore';
-import { authReady } from '@/lib/firebase/client';
+import { authReady, getFirebaseAuth } from '@/lib/firebase/client';
 import { offlineDB, STORES } from '@/lib/offline/db';
 
 /** localStorage key for session ID */
@@ -48,19 +48,42 @@ export function useProgress(
   countryCode: string,
   knowledgeLevel: KnowledgeLevel
 ): UseProgressReturn {
-  const [sessionId] = useState(() => {
-    if (typeof window === 'undefined') return '';
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (stored) return stored;
-    const newId = generateSessionId();
-    localStorage.setItem(SESSION_KEY, newId);
-    return newId;
-  });
+  const [sessionId, setSessionId] = useState<string>('');
+
+  useEffect(() => {
+    async function initSession() {
+      if (typeof window === 'undefined') return;
+
+      // Wait for Firebase Auth to be ready
+      await authReady;
+      const auth = getFirebaseAuth();
+      const uid = auth?.currentUser?.uid;
+
+      if (uid) {
+        setSessionId(uid);
+        // Sync the old session ID to the new UID if needed? 
+        // For now, let's just use UID as it's the most stable.
+        localStorage.setItem(SESSION_KEY, uid);
+      } else {
+        const stored = localStorage.getItem(SESSION_KEY);
+        if (stored) {
+          setSessionId(stored);
+        } else {
+          const newId = generateSessionId();
+          localStorage.setItem(SESSION_KEY, newId);
+          setSessionId(newId);
+        }
+      }
+    }
+    initSession();
+  }, []);
+
   const [progress, setProgress] = useState<UserProgress | null>(null);
 
   // Restore progress on mount
   useEffect(() => {
     async function restore() {
+      if (!sessionId) return;
       // 1. Try Offline DB first for immediate response
       try {
         const localSaved = await offlineDB.get<UserProgress>(STORES.PROGRESS, sessionId);

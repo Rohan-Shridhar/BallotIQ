@@ -14,6 +14,9 @@ import {
   signInWithPopup,
   createUserWithEmailAndPassword,
   signOut,
+  linkWithPopup,
+  linkWithCredential,
+  EmailAuthProvider,
 } from 'firebase/auth';
 import type { Auth, User } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
@@ -195,6 +198,12 @@ export async function signInWithGoogle() {
 
   const provider = new GoogleAuthProvider();
 
+  // If already signed in anonymously, link the account
+  if (auth.currentUser?.isAnonymous) {
+    const result = await linkWithPopup(auth.currentUser, provider);
+    return result.user;
+  }
+
   const result = await signInWithPopup(auth, provider);
 
   return result.user;
@@ -212,6 +221,13 @@ export async function createAccount(
     throw new Error('Firebase Auth not initialized');
   }
 
+  // If already signed in anonymously, link the account
+  if (auth.currentUser?.isAnonymous) {
+    const credential = EmailAuthProvider.credential(email, password);
+    const result = await linkWithCredential(auth.currentUser, credential);
+    return result.user;
+  }
+
   const result = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -220,6 +236,7 @@ export async function createAccount(
 
   return result.user;
 }
+
 /**
  * Signs out the current user.
  */

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
-import { signInWithGoogle, createAccount } from "@/lib/firebase/client";
+import { useState, useEffect } from "react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { signInWithGoogle, createAccount, getFirebaseAuth } from "@/lib/firebase/client";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [showCreateAccount, setShowCreateAccount] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,19 +19,29 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  useEffect(() => {
+    const auth = getFirebaseAuth();
+    if (auth?.currentUser) {
+      setIsAnonymous(auth.currentUser.isAnonymous);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
       onClose();
-    } catch (error: any) {
-      console.error("Account creation failed:", error);
+    } catch (error: unknown) {
+      console.error("Authentication failed:", error);
+      const firebaseError = error as { code?: string; message?: string };
 
-      if (error.code === "auth/email-already-in-use") {
+      if (firebaseError.code === "auth/email-already-in-use") {
         alert("This email already has an account. Please sign in instead.");
+      } else if (firebaseError.code === "auth/credential-already-in-use") {
+        alert("This Google account is already linked to another BallotIQ user.");
       } else {
-        alert(error.message);
+        alert(firebaseError.message || "Authentication failed");
       }
     }
   };
@@ -54,41 +65,57 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
       await createAccount(email, password);
 
-      alert("Account created successfully!");
+      alert(isAnonymous ? "Progress saved successfully!" : "Account created successfully!");
       onClose();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Account creation failed:", error);
-      alert("Failed to create account");
+      const firebaseError = error as { code?: string; message?: string };
+      if (firebaseError.code === "auth/email-already-in-use") {
+        alert("This email already has an account. Please sign in instead.");
+      } else {
+        alert("Failed to create account: " + (firebaseError.message || "Unknown error"));
+      }
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div className="w-full max-w-md rounded-3xl bg-[#080815] border border-white/10 p-8 text-center">
+      <div className="w-full max-w-md rounded-3xl bg-[#080815] border border-white/10 p-8 text-center relative overflow-hidden">
+        {isAnonymous && (
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600" />
+        )}
+        
+        <div className="mb-6 flex justify-center">
+          <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
+            <ShieldCheck className="w-8 h-8 text-blue-400" />
+          </div>
+        </div>
+
         <h2 className="text-2xl font-bold text-white mb-3">
-          Welcome to BallotIQ
+          {isAnonymous ? "Save Your Progress" : "Welcome to BallotIQ"}
         </h2>
 
         {!showCreateAccount ? (
           <>
             <p className="text-gray-400 mb-6">
-              Sign in or create an account to save your progress and personalize
-              your learning experience.
+              {isAnonymous 
+                ? "Upgrade to a permanent account to ensure your learning history, quiz results, and personalized guides are never lost."
+                : "Sign in or create an account to save your progress and personalize your learning experience."}
             </p>
 
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleGoogleSignIn}
-                className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition"
+                className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition flex items-center justify-center gap-2"
               >
-                Continue with Google
+                <span>Continue with Google</span>
               </button>
 
               <button
                 onClick={() => setShowCreateAccount(true)}
                 className="w-full py-3 rounded-xl bg-white/5 text-white font-semibold hover:bg-white/10 transition"
               >
-                Create Account
+                {isAnonymous ? "Save with Email" : "Create Account"}
               </button>
 
               <button
@@ -101,7 +128,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </>
         ) : (
           <>
-            <p className="text-gray-400 mb-6">Create your BallotIQ account</p>
+            <p className="text-gray-400 mb-6">
+              {isAnonymous ? "Link your email to save progress" : "Create your BallotIQ account"}
+            </p>
 
             <div className="flex flex-col gap-3">
               <input
@@ -109,7 +138,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white outline-none"
+                className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white outline-none focus:border-blue-500/50 transition-colors"
               />
 
               <div className="relative">
@@ -118,7 +147,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 pr-12 text-white outline-none"
+                  className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 pr-12 text-white outline-none focus:border-blue-500/50 transition-colors"
                 />
 
                 <button
@@ -136,7 +165,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   placeholder="Confirm Password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 pr-12 text-white outline-none"
+                  className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 pr-12 text-white outline-none focus:border-blue-500/50 transition-colors"
                 />
 
                 <button
@@ -156,7 +185,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 onClick={handleCreateAccount}
                 className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-500 transition"
               >
-                Create Account
+                {isAnonymous ? "Save Progress" : "Create Account"}
               </button>
 
               <button
@@ -172,3 +201,4 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     </div>
   );
 }
+

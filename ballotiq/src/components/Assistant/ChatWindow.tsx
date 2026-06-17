@@ -14,6 +14,7 @@ import { logAssistantQuestion } from '@/lib/firebase/analytics';
 import { sanitizeUserInput } from '@/lib/security/sanitize';
 import { useSTT } from '@/hooks/useSTT';
 import { getLanguageInfo } from '@/lib/constants/languages';
+import { authReady, getFirebaseAuth } from '@/lib/firebase/client';
 import TranslatedText from '@/components/ui/TranslatedText';
 import AIStatusBadge from '@/components/ui/AIStatusBadge';
 import ChatMessage from './ChatMessage';
@@ -112,7 +113,12 @@ export default function ChatWindow({
       // Save conversation metadata if this is the first message in the session
       if (messages.length === 0) {
         const title = generateTitle(sanitized);
-        const userId = typeof window !== 'undefined' ? localStorage.getItem('ballotiq_session_id') || userContext.sessionId : userContext.sessionId;
+        
+        // Determine userId (prefer Firebase UID)
+        await authReady;
+        const auth = getFirebaseAuth();
+        const userId = auth?.currentUser?.uid || (typeof window !== 'undefined' ? localStorage.getItem('ballotiq_session_id') || userContext.sessionId : userContext.sessionId);
+        
         const metadata = {
           id: userContext.sessionId,
           userId,

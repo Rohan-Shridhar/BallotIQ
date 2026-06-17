@@ -30,6 +30,7 @@ import {
   saveConversationMetadata
 } from '@/lib/firebase/firestore';
 import { generateUUID } from '@/lib/utils';
+import { authReady, getFirebaseAuth } from '@/lib/firebase/client';
 
 /** Full-page AI assistant with context-aware responses */
 export default function AssistantPage() {
@@ -41,10 +42,21 @@ export default function AssistantPage() {
   const [userId, setUserId] = useState<string>('');
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUserId = localStorage.getItem('ballotiq_session_id') || '';
-      setUserId(storedUserId);
+    async function initUser() {
+      if (typeof window === 'undefined') return;
+      
+      await authReady;
+      const auth = getFirebaseAuth();
+      const uid = auth?.currentUser?.uid;
+      
+      if (uid) {
+        setUserId(uid);
+      } else {
+        const storedUserId = localStorage.getItem('ballotiq_session_id') || '';
+        setUserId(storedUserId);
+      }
     }
+    initUser();
   }, []);
 
   const loadConversations = useCallback(async () => {
