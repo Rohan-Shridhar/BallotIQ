@@ -92,7 +92,7 @@ export default function ScoreBoard({
       {/* Stats */}
       <div className="flex justify-center gap-6">
         <div className="text-center">
-          <p className="text-2xl font-bold text-white">{avgTime}s</p>
+          <p className="text-2xl font-bold text-amber-300">{avgTime}s</p>
           <p className="text-xs text-gray-500"><TranslatedText text="Avg. time per question" /></p>
         </div>
         <div className="text-center">
