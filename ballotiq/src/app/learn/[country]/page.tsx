@@ -24,7 +24,7 @@ export default function LearnPage() {
     adaptationActive, reExplanation, isReExplaining,
     suggestion, dismiss, recordInteraction,
     question, quizLoading, selectedAnswer, isCorrect, showResult, explanation,
-    submitAnswer, resetQuiz, toggleTTS, isSpeaking, currentText,
+    submitAnswer, resetQuiz, handleRetryQuiz, toggleTTS, isSpeaking, currentText,
     handleStepClick, moveToNextStep, completeStep
   } = useLearnPageLogic();
 
@@ -107,6 +107,7 @@ export default function LearnPage() {
                     onToggleTTS={toggleTTS}
                     onInteraction={recordInteraction}
                     onSubmitQuiz={submitAnswer}
+                    onRetryQuiz={handleRetryQuiz}
                     onContinueQuiz={() => {
                       if (currentStepIndex < steps.length - 1) {
                         moveToNextStep();
