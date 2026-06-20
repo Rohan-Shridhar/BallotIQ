@@ -19,13 +19,13 @@ import LearnPageLoading from '@/components/Journey/LearnPageLoading';
  */
 export default function LearnPage() {
   const {
-    router, countryCode, userContext, country, steps,
-    completedSteps, currentStepIndex, setCurrentStepIndex, activeStep,
-    adaptationActive, reExplanation, isReExplaining,
-    suggestion, dismiss, recordInteraction,
-    question, quizLoading, selectedAnswer, isCorrect, showResult, explanation,
-    submitAnswer, resetQuiz, handleRetryQuiz, toggleTTS, isSpeaking, currentText,
-    handleStepClick, moveToNextStep, completeStep
+  router, countryCode, userContext, country, steps,
+  completedSteps, currentStepIndex, setCurrentStepIndex, activeStep,
+  adaptationActive, reExplanation, isReExplaining,
+  suggestion, dismiss, recordInteraction,
+  question, quizLoading, selectedAnswer, isCorrect, showResult, explanation,
+  submitAnswer, resetQuiz, handleRetryQuiz, toggleTTS, isSpeaking, currentText,
+  handleStepClick, moveToNextStep, completeStep, updateLanguage
   } = useLearnPageLogic();
 
   if (!userContext) {
@@ -50,6 +50,7 @@ export default function LearnPage() {
         onBack={() => router.push('/choose-path')}
         onFindPollingStations={() => router.push('/polling-stations')}
         onAiAssistant={() => router.push('/assistant')}
+        onLanguageChange={updateLanguage}
       />
 
       {/* Proactive Suggestion Overlay */}
