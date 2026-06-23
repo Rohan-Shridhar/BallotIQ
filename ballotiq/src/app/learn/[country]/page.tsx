@@ -158,4 +158,4 @@ export default function LearnPage() {
       <BottomNav activeTab="learn" countryCode={userContext.countryCode} />
     </div>
   );
-}
+}     
