@@ -65,6 +65,23 @@ npm test        # 50+ test cases
 
 Deployed on **Google Cloud Run**.
 
+### Deployment & Liveness Probes
+
+A lightweight liveness health check is available at `/api/health` which returns `200 OK` as long as the server is running (with zero I/O or database queries to minimize latency and cold start times).
+
+Configure the liveness probe on Google Cloud Run with:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+```
+
 ## Demo Screenshots
 <img width="1280" height="614" alt="image" src="https://github.com/user-attachments/assets/f47273a7-66c2-4a46-8810-740959088a29" />
 <img width="1280" height="611" alt="image" src="https://github.com/user-attachments/assets/19dc5777-068f-4aaa-8e48-45c51e611a6d" />
