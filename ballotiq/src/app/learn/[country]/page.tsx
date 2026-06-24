@@ -1,17 +1,19 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-import { useLearnPageLogic } from '@/hooks/useLearnPageLogic';
-import TranslatedText from '@/components/ui/TranslatedText';
-import BottomNav from '@/components/ui/BottomNav';
-import { ProactiveSuggestionBanner } from '@/components/Journey/ProactiveSuggestionBanner';
-import LearnPageHeader from '@/components/Journey/LearnPageHeader';
-import LearnPageBottomNav from '@/components/Journey/LearnPageBottomNav';
-import CompletionScreen from '@/components/Journey/CompletionScreen';
-import JourneyTimelineSidebar from '@/components/Journey/JourneyTimelineSidebar';
-import StepNavigation from '@/components/Journey/StepNavigation';
-import ActiveStepContent from '@/components/Journey/ActiveStepContent';
-import LearnPageLoading from '@/components/Journey/LearnPageLoading';
+import ActiveStepContent from "@/components/Journey/ActiveStepContent";
+import CompletionScreen from "@/components/Journey/CompletionScreen";
+import JourneyTimelineSidebar from "@/components/Journey/JourneyTimelineSidebar";
+import LearnPageBottomNav from "@/components/Journey/LearnPageBottomNav";
+import LearnPageHeader from "@/components/Journey/LearnPageHeader";
+import LearnPageLoading from "@/components/Journey/LearnPageLoading";
+import { ProactiveSuggestionBanner } from "@/components/Journey/ProactiveSuggestionBanner";
+import StepNavigation from "@/components/Journey/StepNavigation";
+import BottomNav from "@/components/ui/BottomNav";
+import TranslatedText from "@/components/ui/TranslatedText";
+import { useLearnPageLogic } from "@/hooks/useLearnPageLogic";
+import { EVENTS } from "@/lib/posthog/events";
+import { captureEvent } from "@/lib/posthog/helper";
+import { Suspense, useEffect } from "react";
 
 /**
  * Older design of the Learn page — Optimized for unified UI.
@@ -19,25 +21,72 @@ import LearnPageLoading from '@/components/Journey/LearnPageLoading';
  */
 export default function LearnPage() {
   const {
-  router, countryCode, userContext, country, steps,
-  completedSteps, currentStepIndex, setCurrentStepIndex, activeStep,
-  adaptationActive, reExplanation, isReExplaining,
-  suggestion, dismiss, recordInteraction,
-  question, quizLoading, selectedAnswer, isCorrect, showResult, explanation,
-  submitAnswer, resetQuiz, handleRetryQuiz, toggleTTS, isSpeaking, currentText,
-  handleStepClick, moveToNextStep, completeStep, updateLanguage
+    router,
+    countryCode,
+    userContext,
+    country,
+    steps,
+    completedSteps,
+    currentStepIndex,
+    setCurrentStepIndex,
+    activeStep,
+    adaptationActive,
+    reExplanation,
+    isReExplaining,
+    suggestion,
+    dismiss,
+    recordInteraction,
+    question,
+    quizLoading,
+    selectedAnswer,
+    isCorrect,
+    showResult,
+    explanation,
+    submitAnswer,
+    resetQuiz,
+    handleRetryQuiz,
+    toggleTTS,
+    isSpeaking,
+    currentText,
+    handleStepClick,
+    moveToNextStep,
+    completeStep,
+    updateLanguage,
   } = useLearnPageLogic();
+
+  useEffect(() => {
+    if (userContext) {
+      captureEvent(EVENTS.LEARNING_PATH_STARTED, {
+        country_code: userContext.countryCode,
+        knowledge_level: userContext.knowledgeLevel,
+        total_steps: steps.length,
+      });
+    }
+  }, [userContext?.sessionId]);
+
+  const isAllStepsDone =
+    completedSteps.length >= steps.length && steps.length > 0;
+
+  useEffect(() => {
+    if (isAllStepsDone && userContext) {
+      captureEvent(EVENTS.ALL_STEPS_COMPLETED, {
+        country_code: userContext.countryCode,
+        knowledge_level: userContext.knowledgeLevel,
+        total_steps: steps.length,
+      });
+    }
+  }, [isAllStepsDone]);
 
   if (!userContext) {
     return <LearnPageLoading />;
   }
 
-  const isAllStepsDone = completedSteps.length >= steps.length && steps.length > 0;
   // Determine if we should show the curriculum complete screen
-  const showCurriculumComplete = isAllStepsDone && currentStepIndex >= steps.length;
+  const showCurriculumComplete =
+    isAllStepsDone && currentStepIndex >= steps.length;
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 text-gray-200 selection:bg-blue-500/30"
       onMouseMove={recordInteraction}
       onClick={recordInteraction}
@@ -47,16 +96,19 @@ export default function LearnPage() {
         countryName={userContext.countryName}
         knowledgeLevel={userContext.knowledgeLevel}
         adaptationActive={adaptationActive}
-        onBack={() => router.push('/choose-path')}
-        onFindPollingStations={() => router.push('/polling-stations')}
-        onAiAssistant={() => router.push('/assistant')}
+        onBack={() => router.push("/choose-path")}
+        onFindPollingStations={() => router.push("/polling-stations")}
+        onAiAssistant={() => router.push("/assistant")}
         onLanguageChange={updateLanguage}
       />
 
       {/* Proactive Suggestion Overlay */}
       {suggestion && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 w-full max-w-lg px-6 z-[60]">
-          <ProactiveSuggestionBanner suggestion={suggestion} onDismiss={dismiss} />
+          <ProactiveSuggestionBanner
+            suggestion={suggestion}
+            onDismiss={dismiss}
+          />
         </div>
       )}
 
@@ -74,7 +126,7 @@ export default function LearnPage() {
           completedSteps={completedSteps}
           isAllStepsDone={isAllStepsDone}
           onStepClick={handleStepClick}
-          onTakeQuiz={() => router.push('/quiz')}
+          onTakeQuiz={() => router.push("/quiz")}
         />
 
         {/* Main Content Area */}
@@ -114,9 +166,9 @@ export default function LearnPage() {
                         moveToNextStep();
                         resetQuiz();
                         recordInteraction();
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        window.scrollTo({ top: 0, behavior: "smooth" });
                       } else {
-                        router.push('/quiz');
+                        router.push("/quiz");
                       }
                     }}
                   />
@@ -131,7 +183,7 @@ export default function LearnPage() {
                       moveToNextStep();
                       resetQuiz();
                       recordInteraction();
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      window.scrollTo({ top: 0, behavior: "smooth" });
                     }}
                   />
                 </>
@@ -147,7 +199,7 @@ export default function LearnPage() {
                 <CompletionScreen
                   countryName={userContext.countryName}
                   onReview={() => setCurrentStepIndex(steps.length - 1)}
-                  onTakeQuiz={() => router.push('/quiz')}
+                  onTakeQuiz={() => router.push("/quiz")}
                 />
               )}
             </div>
@@ -158,4 +210,4 @@ export default function LearnPage() {
       <BottomNav activeTab="learn" countryCode={userContext.countryCode} />
     </div>
   );
-}     
+}

@@ -4,17 +4,17 @@
  * Falls back to original text on any error.
  */
 
-import type { SupportedLanguage } from '@/types';
-import { logger } from '@/lib/logger';
-import { withTrace } from '@/lib/firebase/performance';
-import { checkRateLimit, incrementUsage } from '@/lib/security/rateLimit';
-import { offlineDB, STORES } from '@/lib/offline/db';
+import { withTrace } from "@/lib/firebase/performance";
+import { logger } from "@/lib/logger";
+import { offlineDB, STORES } from "@/lib/offline/db";
+import { checkRateLimit, incrementUsage } from "@/lib/security/rateLimit";
+import type { SupportedLanguage } from "@/types";
 
 /** In-memory translation cache: key = `${text}:${lang}` */
 const translationCache = new Map<string, string>();
 
-const API_KEY = process.env.NEXT_PUBLIC_TRANSLATE_API_KEY ?? '';
-const BASE_URL = 'https://translation.googleapis.com/language/translate/v2';
+const API_KEY = process.env.NEXT_PUBLIC_TRANSLATE_API_KEY ?? "";
+const BASE_URL = "https://translation.googleapis.com/language/translate/v2";
 
 let hasLoggedFirstResponse = false;
 
@@ -34,10 +34,10 @@ interface TranslationResponse {
 export async function translateText(
   text: string,
   targetLang: SupportedLanguage,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<string> {
-  return withTrace('translateText', { targetLang }, async () => {
-    if (targetLang === 'en' || !text.trim()) return text;
+  return withTrace("translateText", { targetLang }, async () => {
+    if (targetLang === "en" || !text.trim()) return text;
 
     const cacheKey = `${text}:${targetLang}`;
     const cached = translationCache.get(cacheKey);
@@ -45,56 +45,71 @@ export async function translateText(
 
     // Check IndexedDB
     try {
-      if (typeof window !== 'undefined') {
-        const dbCached = await offlineDB.get<string>(STORES.TRANSLATIONS, cacheKey);
+      if (typeof window !== "undefined") {
+        const dbCached = await offlineDB.get<string>(
+          STORES.TRANSLATIONS,
+          cacheKey,
+        );
         if (dbCached) {
           translationCache.set(cacheKey, dbCached);
           return dbCached;
         }
       }
     } catch (e) {
-      console.warn('[OfflineDB] Failed to read translation', e);
+      console.warn("[OfflineDB] Failed to read translation", e);
     }
 
     if (!API_KEY) {
-      logger.error('API Key is missing. Set NEXT_PUBLIC_TRANSLATE_API_KEY.', null, { component: 'TranslateClient' });
+      logger.error(
+        "API Key is missing. Set NEXT_PUBLIC_TRANSLATE_API_KEY.",
+        null,
+        { component: "TranslateClient" },
+      );
       return text;
     }
 
-    const limit = await checkRateLimit(sessionId ?? 'translate', 'translate');
+    const limit = await checkRateLimit(sessionId ?? "translate", "translate");
     if (!limit.allowed) return text;
 
     try {
       const response = await fetch(`${BASE_URL}?key=${API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q: text, target: targetLang, format: 'text' }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ q: text, target: targetLang, format: "text" }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Translation API error: ${response.status} - ${JSON.stringify(errorData)}`);
+        throw new Error(
+          `Translation API error: ${response.status} - ${JSON.stringify(errorData)}`,
+        );
       }
 
-      const data = await response.json() as TranslationResponse;
-      
+      const data = (await response.json()) as TranslationResponse;
+
       if (!hasLoggedFirstResponse) {
-        logger.info('First API response received', { component: 'TranslateClient' });
+        logger.info("First API response received", {
+          component: "TranslateClient",
+        });
         hasLoggedFirstResponse = true;
       }
 
       const translated = data.data.translations[0].translatedText;
       translationCache.set(cacheKey, translated);
-      
+
       // Save to IndexedDB
-      if (typeof window !== 'undefined') {
-        offlineDB.set(STORES.TRANSLATIONS, cacheKey, translated).catch(() => {});
+      if (typeof window !== "undefined") {
+        offlineDB
+          .set(STORES.TRANSLATIONS, cacheKey, translated)
+          .catch(() => {});
       }
 
-      await incrementUsage(sessionId ?? 'translate', 'translate');
+      await incrementUsage(sessionId ?? "translate", "translate");
       return translated;
     } catch (error) {
-      logger.error('Translation failed', error, { component: 'TranslateClient' });
+      logger.error("Translation failed", error, {
+        component: "TranslateClient",
+      });
       return text;
     }
   });
@@ -106,82 +121,100 @@ export async function translateText(
 export async function translateBatch(
   texts: string[],
   targetLang: SupportedLanguage,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<string[]> {
-  return withTrace('translateBatch', { targetLang, count: String(texts.length) }, async () => {
-    if (targetLang === 'en' || texts.length === 0) return texts;
+  return withTrace(
+    "translateBatch",
+    { targetLang, count: String(texts.length) },
+    async () => {
+      if (targetLang === "en" || texts.length === 0) return texts;
 
-    const uncached: { index: number; text: string }[] = [];
-    const results = [...texts];
+      const uncached: { index: number; text: string }[] = [];
+      const results = [...texts];
 
-    for (let i = 0; i < texts.length; i++) {
-      const text = texts[i];
-      const cacheKey = `${text}:${targetLang}`;
-      const cached = translationCache.get(cacheKey);
-      if (cached) {
-        results[i] = cached;
-      } else if (text.trim()) {
-        // Try IndexedDB first
-        if (typeof window !== 'undefined') {
-          try {
-            const dbCached = await offlineDB.get<string>(STORES.TRANSLATIONS, cacheKey);
-            if (dbCached) {
-              results[i] = dbCached;
-              translationCache.set(cacheKey, dbCached);
-              continue;
-            }
-          } catch {}
+      for (let i = 0; i < texts.length; i++) {
+        const text = texts[i];
+        const cacheKey = `${text}:${targetLang}`;
+        const cached = translationCache.get(cacheKey);
+        if (cached) {
+          results[i] = cached;
+        } else if (text.trim()) {
+          // Try IndexedDB first
+          if (typeof window !== "undefined") {
+            try {
+              const dbCached = await offlineDB.get<string>(
+                STORES.TRANSLATIONS,
+                cacheKey,
+              );
+              if (dbCached) {
+                results[i] = dbCached;
+                translationCache.set(cacheKey, dbCached);
+                continue;
+              }
+            } catch {}
+          }
+          uncached.push({ index: i, text });
         }
-        uncached.push({ index: i, text });
-      }
-    }
-
-    if (uncached.length === 0) return results;
-
-    if (!API_KEY) return results;
-
-    const limit = await checkRateLimit(sessionId ?? 'translate', 'translate');
-    if (!limit.allowed) return results;
-
-    try {
-      const response = await fetch(`${BASE_URL}?key=${API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          q: uncached.map((u) => u.text),
-          target: targetLang,
-          format: 'text',
-        }),
-      });
-
-      if (!response.ok) throw new Error(`Translation API error: ${response.status}`);
-
-      const data = await response.json() as TranslationResponse;
-      
-      if (!hasLoggedFirstResponse) {
-        logger.info('First Batch API response received', { component: 'TranslateClient' });
-        hasLoggedFirstResponse = true;
       }
 
-      const dbPromises: Promise<void>[] = [];
-      data.data.translations.forEach((t, i) => {
-        const entry = uncached[i];
-        results[entry.index] = t.translatedText;
-        translationCache.set(`${entry.text}:${targetLang}`, t.translatedText);
-        
-        if (typeof window !== 'undefined') {
-          dbPromises.push(offlineDB.set(STORES.TRANSLATIONS, `${entry.text}:${targetLang}`, t.translatedText));
-        }
-      });
-      
-      Promise.all(dbPromises).catch(() => {});
-      await incrementUsage(sessionId ?? 'translate', 'translate');
-    } catch (error) {
-      logger.error('Batch translation failed', error, { component: 'TranslateClient' });
-    }
+      if (uncached.length === 0) return results;
 
-    return results;
-  });
+      if (!API_KEY) return results;
+
+      const limit = await checkRateLimit(sessionId ?? "translate", "translate");
+      if (!limit.allowed) return results;
+
+      try {
+        const response = await fetch(`${BASE_URL}?key=${API_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            q: uncached.map((u) => u.text),
+            target: targetLang,
+            format: "text",
+          }),
+        });
+
+        if (!response.ok)
+          throw new Error(`Translation API error: ${response.status}`);
+
+        const data = (await response.json()) as TranslationResponse;
+
+        if (!hasLoggedFirstResponse) {
+          logger.info("First Batch API response received", {
+            component: "TranslateClient",
+          });
+          hasLoggedFirstResponse = true;
+        }
+
+        const dbPromises: Promise<void>[] = [];
+        data.data.translations.forEach((t, i) => {
+          const entry = uncached[i];
+          results[entry.index] = t.translatedText;
+          translationCache.set(`${entry.text}:${targetLang}`, t.translatedText);
+
+          if (typeof window !== "undefined") {
+            dbPromises.push(
+              offlineDB.set(
+                STORES.TRANSLATIONS,
+                `${entry.text}:${targetLang}`,
+                t.translatedText,
+              ),
+            );
+          }
+        });
+
+        Promise.all(dbPromises).catch(() => {});
+        await incrementUsage(sessionId ?? "translate", "translate");
+      } catch (error) {
+        logger.error("Batch translation failed", error, {
+          component: "TranslateClient",
+        });
+      }
+
+      return results;
+    },
+  );
 }
 
 /**

@@ -1,39 +1,52 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
-import { ArrowLeft } from 'lucide-react';
-import { getCountryByCode } from '@/lib/constants/countries';
-import type { UserContext } from '@/types';
+import BottomNav from "@/components/ui/BottomNav";
+import LanguageSelector from "@/components/ui/LanguageSelector";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import TranslatedText from "@/components/ui/TranslatedText";
+import { getCountryByCode } from "@/lib/constants/countries";
+import { EVENTS } from "@/lib/posthog/events";
+import { captureEvent } from "@/lib/posthog/helper";
+import type { UserContext } from "@/types";
+import { ArrowLeft } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const PollingStationFinder = dynamic(
-  () => import('@/components/Location/PollingStationFinder'),
-  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-white/5 rounded-xl" /> }
+  () => import("@/components/Location/PollingStationFinder"),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 animate-pulse bg-white/5 rounded-xl" />,
+  },
 );
-import LanguageSelector from '@/components/ui/LanguageSelector';
-import ThemeToggle from '@/components/ui/ThemeToggle';
-import TranslatedText from '@/components/ui/TranslatedText';
-import BottomNav from '@/components/ui/BottomNav';
 
 export default function PollingStationsPage() {
   const router = useRouter();
   const [userContext] = useState<UserContext | null>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('ballotiq_context');
-      return stored ? JSON.parse(stored) as UserContext : null;
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem("ballotiq_context");
+      return stored ? (JSON.parse(stored) as UserContext) : null;
     }
     return null;
   });
 
   useEffect(() => {
-    if (!userContext && typeof window !== 'undefined') {
-      const stored = sessionStorage.getItem('ballotiq_context');
+    if (!userContext && typeof window !== "undefined") {
+      const stored = sessionStorage.getItem("ballotiq_context");
       if (!stored) {
-        router.push('/');
+        router.push("/");
       }
     }
   }, [router, userContext]);
+
+  useEffect(() => {
+    if (userContext) {
+      captureEvent(EVENTS.POLLING_STATIONS_OPENED, {
+        country_code: userContext.countryCode,
+      });
+    }
+  }, []);
 
   if (!userContext) return null;
 
@@ -41,7 +54,12 @@ export default function PollingStationsPage() {
 
   return (
     <div className="h-[100dvh] bg-gradient-to-br from-gray-950 via-blue-950 to-gray-950 text-gray-200 selection:bg-blue-500/30 overflow-hidden flex flex-col">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg">Skip to main content</a>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg"
+      >
+        Skip to main content
+      </a>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-gray-950/80 backdrop-blur-xl border-b border-white/5 flex-shrink-0">
         <div className="max-w-[1600px] mx-auto px-4 h-16 sm:h-20 flex items-center justify-between gap-4">
@@ -67,7 +85,11 @@ export default function PollingStationsPage() {
       </header>
 
       {/* Full-screen map area (minus header and bottom nav) */}
-      <div id="main-content" tabIndex={-1} className="flex-1 min-h-0 w-full pb-20 md:pb-0 outline-none">
+      <div
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 min-h-0 w-full pb-20 md:pb-0 outline-none"
+      >
         <div className="h-full w-full relative">
           {country && <PollingStationFinder country={country} fullScreen />}
         </div>

@@ -5,7 +5,7 @@
  * Full page chat with user context from assessment and learning.
  */
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Menu } from 'lucide-react';
 import Image from 'next/image';
@@ -32,6 +32,8 @@ import {
 } from '@/lib/firebase/firestore';
 import { generateUUID } from '@/lib/utils';
 import { authReady, getFirebaseAuth } from '@/lib/firebase/client';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 /** Full-page AI assistant with context-aware responses */
 export default function AssistantPage() {
@@ -41,6 +43,7 @@ export default function AssistantPage() {
   const [conversations, setConversations] = useState<ConversationMetadata[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userId, setUserId] = useState<string>('');
+  const chatOpenedRef = useRef(false);
 
   useEffect(() => {
     async function initUser() {
@@ -86,6 +89,14 @@ export default function AssistantPage() {
         sessionStorage.setItem('ballotiq_context', JSON.stringify(ctx));
       }
     }
+    if (!chatOpenedRef.current) {
+      chatOpenedRef.current = true;
+      captureEvent(EVENTS.CHAT_OPENED, {
+        country_code: ctx.countryCode,
+        knowledge_level: ctx.knowledgeLevel,
+        is_open_chat: ctx.mainConfusion === 'Direct query',
+      });
+    }
     setUserContext(ctx);
     setMounted(true);
   }, [router]);
@@ -130,6 +141,7 @@ export default function AssistantPage() {
       updatedAt: new Date().toISOString(),
     };
     await saveConversationMetadata(newConv);
+    captureEvent(EVENTS.CONVERSATION_CREATED, { country_code: userContext.countryCode });
     setConversations((prev) => [newConv, ...prev]);
     setSidebarOpen(false);
   };
@@ -150,6 +162,7 @@ export default function AssistantPage() {
 
   const handleDeleteConversation = async (id: string) => {
     await deleteConversation(id);
+    captureEvent(EVENTS.CONVERSATION_DELETED, {});
     setConversations((prev) => prev.filter((c) => c.id !== id));
     if (userContext?.sessionId === id) {
       const remaining = conversations.filter((c) => c.id !== id);

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 interface UseKeyboardShortcutsProps {
   onToggleHelp: () => void;
@@ -37,6 +39,7 @@ export function useKeyboardShortcuts({
 
       if (event.key === '?') {
         event.preventDefault();
+        captureEvent(EVENTS.KEYBOARD_SHORTCUT_USED, { key: '?' });
         onToggleHelp();
       } else if (event.key === 'Escape' || event.key === 'Esc') {
         if (isOpen) {

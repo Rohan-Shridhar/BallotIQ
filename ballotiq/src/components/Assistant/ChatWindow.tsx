@@ -15,6 +15,8 @@ import { sanitizeUserInput } from '@/lib/security/sanitize';
 import { useSTT } from '@/hooks/useSTT';
 import { getLanguageInfo } from '@/lib/constants/languages';
 import { authReady, getFirebaseAuth } from '@/lib/firebase/client';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 import TranslatedText from '@/components/ui/TranslatedText';
 import AIStatusBadge from '@/components/ui/AIStatusBadge';
 import ChatMessage from './ChatMessage';
@@ -116,6 +118,12 @@ export default function ChatWindow({
     try {
       await saveChatMessage(userContext.sessionId, userMsg);
       await logAssistantQuestion(userContext.countryCode, userContext.knowledgeLevel);
+      captureEvent(EVENTS.CHAT_MESSAGE_SENT, {
+        country_code: userContext.countryCode,
+        knowledge_level: userContext.knowledgeLevel,
+        from_voice: fromVoice,
+        message_count: messagesRef.current.length,
+      });
 
       // Save conversation metadata only once per session (first message).
       // We use a ref instead of checking messages.length to avoid a stale-closure
@@ -170,6 +178,7 @@ export default function ChatWindow({
       }
     } catch {
       onAiStatusChange?.(false);
+      captureEvent(EVENTS.CHAT_RESPONSE_FAILED, { country_code: userContext.countryCode });
       const errorMsg: ChatMessageType = {
         id: `msg_${Date.now()}_error`,
         role: 'assistant',

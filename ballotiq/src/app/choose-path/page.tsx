@@ -8,6 +8,8 @@ import TranslatedText from '@/components/ui/TranslatedText';
 import LanguageSelector from '@/components/ui/LanguageSelector';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import type { Country, UserContext } from '@/types';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 /**
  * Path selection page — shown after country selection.
@@ -29,11 +31,13 @@ export default function ChoosePathPage() {
   }, [router]);
 
   const startGuidedPath = () => {
+    captureEvent(EVENTS.PATH_CHOSEN, { path: 'guided', country_code: selectedCountry?.code });
     router.push('/assess');
   };
 
   const startOpenChat = () => {
     if (!selectedCountry) return;
+    captureEvent(EVENTS.PATH_CHOSEN, { path: 'chat', country_code: selectedCountry.code });
     
     const context: UserContext = {
       sessionId: `chat_${Date.now()}`,

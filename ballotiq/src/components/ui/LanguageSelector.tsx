@@ -11,6 +11,8 @@ import { LANGUAGES } from '@/lib/constants/languages';
 import { useTranslation } from '@/hooks/useTranslation';
 import TranslatedText from '@/components/ui/TranslatedText';
 import type { SupportedLanguage } from '@/types';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 interface LanguageSelectorProps {
   className?: string;
@@ -152,12 +154,14 @@ export default function LanguageSelector({ className = '', onLanguageChange }: L
                   <button
                     onMouseDown={(e) => {
                       e.preventDefault();
+                      captureEvent(EVENTS.LANGUAGE_CHANGED, { from: language, to: lang.code });
                       setLanguage(lang.code as SupportedLanguage);
                       onLanguageChange?.(lang.code as SupportedLanguage);
                       setIsOpen(false);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
+                        captureEvent(EVENTS.LANGUAGE_CHANGED, { from: language, to: lang.code });
                         setLanguage(lang.code as SupportedLanguage);
                         onLanguageChange?.(lang.code as SupportedLanguage);
                         setIsOpen(false);

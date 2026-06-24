@@ -5,14 +5,13 @@
  */
 
 import {
-  getRateLimitState,
-  saveRateLimitState,
   atomicIncrementUsage,
+  getRateLimitState,
   isNewDay,
+  saveRateLimitState,
 } from "@/lib/firebase/firestore";
-import { serverTimestamp } from "firebase/firestore";
 import type { RateLimitState } from "@/types";
-
+import { serverTimestamp } from "firebase/firestore";
 /** Daily API call limits per service */
 const DAILY_LIMITS = {
   gemini: 40,

@@ -3,6 +3,8 @@
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { useEffect, useState } from 'react';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 export default function ThemeToggle({ className = '' }: { className?: string }) {
   const { theme, toggleTheme } = useTheme();
@@ -24,7 +26,10 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
 
   return (
     <button
-      onClick={toggleTheme}
+      onClick={() => {
+        captureEvent(EVENTS.THEME_TOGGLED, { new_theme: theme === 'dark' ? 'light' : 'dark' });
+        toggleTheme();
+      }}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       className={`cursor-pointer flex items-center justify-center w-9 h-9 sm:w-[38px] sm:h-[38px] rounded-xl
