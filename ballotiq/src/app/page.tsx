@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { onAuthChange, logout } from "@/lib/firebase/client";
 import type { User } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { captureEvent } from "@/lib/posthog/helper";
+import { EVENTS } from "@/lib/posthog/events";
 import dynamic from "next/dynamic";
 import { ArrowRight, MapPin, Menu, X } from "lucide-react";
 import TranslatedText from "@/components/ui/TranslatedText";
@@ -55,6 +57,7 @@ export default function HomePage() {
 
   const handleCountrySelect = (country: Country) => {
     if (typeof window !== "undefined") {
+      captureEvent(EVENTS.COUNTRY_SELECTED, { country_code: country.code, country_name: country.name });
       sessionStorage.setItem("ballotiq_country", JSON.stringify(country));
       router.push("/choose-path");
     }

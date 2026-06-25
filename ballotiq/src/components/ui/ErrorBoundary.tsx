@@ -1,7 +1,9 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
-import { logEvent } from "firebase/analytics";
-import { analytics } from "@/lib/firebase/client";
 import TranslatedText from "@/components/ui/TranslatedText";
+import { analytics } from "@/lib/firebase/client";
+import { EVENTS } from "@/lib/posthog/events";
+import { captureEvent } from "@/lib/posthog/helper";
+import { logEvent } from "firebase/analytics";
+import React, { Component, ErrorInfo, ReactNode } from "react";
 
 interface Props {
   children: ReactNode;
@@ -37,6 +39,11 @@ export class ErrorBoundary extends Component<Props, State> {
           component: this.props.componentName,
           error_message: error.message,
           error_stack: error.stack,
+        });
+
+        captureEvent(EVENTS.ERROR_BOUNDARY_TRIGGERED, {
+          component: this.props.componentName,
+          error_message: error.message,
         });
       }
     } catch {

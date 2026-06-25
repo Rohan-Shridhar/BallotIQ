@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { signInWithGoogle, createAccount, getFirebaseAuth } from "@/lib/firebase/client";
+import { captureEvent } from "@/lib/posthog/helper";
+import { EVENTS } from "@/lib/posthog/events";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -35,6 +37,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } catch (error: unknown) {
       console.error("Authentication failed:", error);
       const firebaseError = error as { code?: string; message?: string };
+      captureEvent(EVENTS.FIREBASE_ERROR, { context: 'google_sign_in', error_code: firebaseError.code });
 
       if (firebaseError.code === "auth/email-already-in-use") {
         alert("This email already has an account. Please sign in instead.");
@@ -70,6 +73,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } catch (error: unknown) {
       console.error("Account creation failed:", error);
       const firebaseError = error as { code?: string; message?: string };
+      captureEvent(EVENTS.FIREBASE_ERROR, { context: 'create_account', error_code: firebaseError.code });
       if (firebaseError.code === "auth/email-already-in-use") {
         alert("This email already has an account. Please sign in instead.");
       } else {
