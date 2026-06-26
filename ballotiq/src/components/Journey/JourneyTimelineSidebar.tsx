@@ -1,6 +1,7 @@
 'use client';
 
-import { Trophy } from 'lucide-react';
+import { Trophy, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import Timeline from '@/components/Journey/Timeline';
 import TranslatedText from '@/components/ui/TranslatedText';
 import type { ElectionStep } from '@/types';
@@ -26,6 +27,8 @@ export default function JourneyTimelineSidebar({
   onStepClick,
   onTakeQuiz,
 }: JourneyTimelineSidebarProps) {
+  const showJumpToQuiz = steps.length > 0 && completedSteps.length >= Math.ceil(steps.length / 2) && !isAllStepsDone;
+
   return (
     <aside className="hidden lg:block lg:w-80 lg:sticky lg:top-20 lg:h-[calc(100vh-5rem)] border-r border-white/5 bg-gray-950/40 backdrop-blur-3xl overflow-y-auto p-6 scrollbar-hide">
       <div className="mb-8">
@@ -39,6 +42,22 @@ export default function JourneyTimelineSidebar({
           onStepClick={onStepClick}
         />
       </div>
+
+      {showJumpToQuiz && (
+        <div className="mt-8 pt-8 border-t border-white/5 text-center space-y-4">
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">
+            <TranslatedText text="Feel ready?" />
+          </p>
+          <Button
+            variant="ghost"
+            onClick={onTakeQuiz}
+            className="w-full border border-white/10 hover:border-white/20 text-xs uppercase tracking-tighter py-3.5"
+          >
+            <ArrowRight className="w-4 h-4 text-white/70 group-hover:text-white" />
+            <TranslatedText text="Take Quiz Early" />
+          </Button>
+        </div>
+      )}
 
       {isAllStepsDone && (
         <div className="mt-8 p-6 rounded-[2rem] bg-gradient-to-br from-amber-400/10 to-orange-500/5 border border-amber-400/20 text-center space-y-4 shadow-xl shadow-amber-500/5 animate-in zoom-in duration-500">
@@ -60,3 +79,4 @@ export default function JourneyTimelineSidebar({
     </aside>
   );
 }
+
