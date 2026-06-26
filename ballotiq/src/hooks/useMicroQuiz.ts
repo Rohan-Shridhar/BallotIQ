@@ -7,7 +7,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { ElectionStep, MicroQuizQuestion, UserContext } from '@/types';
-import { generateMicroQuiz } from '@/lib/gemini/client';
+import { apiGenerateMicroQuiz } from '@/lib/gemini/api';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 interface UseMicroQuizReturn {
   question: MicroQuizQuestion | null;
@@ -45,13 +47,14 @@ export function useMicroQuiz(
 
   useEffect(() => {
     if (!step) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuestion(null);
       return;
     }
 
+    captureEvent(EVENTS.MICRO_QUIZ_STARTED, { step_id: step.id, step_title: step.title });
+
     if (step.microQuizQuestion) {
-       
+
       setQuestion(step.microQuizQuestion);
       return;
     }
@@ -60,7 +63,7 @@ export function useMicroQuiz(
     async function fetchQuiz() {
       setLoading(true);
       try {
-        const q = await generateMicroQuiz(
+        const q = await apiGenerateMicroQuiz(
           step!,
           userContext?.knowledgeLevel ?? 'beginner',
           userContext?.sessionId
@@ -93,6 +96,11 @@ export function useMicroQuiz(
     if (!correct) {
       setExplanation(question.hint);
     }
+    captureEvent(EVENTS.MICRO_QUIZ_ANSWERED, {
+      correct,
+      selected_index: index,
+      correct_index: question.correctIndex,
+    });
     onResult?.({
       correct,
       selectedAnswerText: question.options[index] ?? '',
@@ -102,6 +110,7 @@ export function useMicroQuiz(
 
   /** Clears the current quiz state to allow for a retake or fresh question. */
   const reset = useCallback(() => {
+    captureEvent(EVENTS.MICRO_QUIZ_RETRIED, {});
     setSelectedAnswer(null);
     setIsCorrect(null);
     setShowResult(false);

@@ -7,6 +7,7 @@ interface TranslatedTextProps {
   text: string;
   className?: string;
   as?: 'span' | 'p' | 'div' | 'h1' | 'h2' | 'h3' | 'h4';
+  isStatic?: boolean;
 }
 
 /**
@@ -16,7 +17,8 @@ interface TranslatedTextProps {
 export default function TranslatedText({ 
   text, 
   className = '', 
-  as: Component = 'span' 
+  as: Component = 'span',
+  isStatic = true
 }: TranslatedTextProps) {
   const { translate, language } = useTranslation();
   const [translatedText, setTranslatedText] = useState(text);
@@ -32,7 +34,7 @@ export default function TranslatedText({
       }
 
       setIsLoading(true);
-      const result = await translate(text);
+      const result = await translate(text, isStatic);
       
       if (isMounted) {
         setTranslatedText(result);
@@ -45,7 +47,7 @@ export default function TranslatedText({
     return () => {
       isMounted = false;
     };
-  }, [text, language, translate]);
+  }, [text, language, translate, isStatic]);
 
   return (
     <Component className={`${className} ${isLoading ? 'opacity-50 transition-opacity' : 'opacity-100'}`}>
@@ -53,3 +55,4 @@ export default function TranslatedText({
     </Component>
   );
 }
+

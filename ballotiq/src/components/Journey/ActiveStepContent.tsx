@@ -33,6 +33,7 @@ interface ActiveStepContentProps {
   onInteraction: () => void;
   onSubmitQuiz: (answer: number) => void;
   onContinueQuiz: () => void;
+  onRetryQuiz?: () => void;
 }
 
 /**
@@ -61,6 +62,7 @@ export default function ActiveStepContent({
   onInteraction,
   onSubmitQuiz,
   onContinueQuiz,
+  onRetryQuiz,
 }: ActiveStepContentProps) {
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
@@ -95,10 +97,12 @@ export default function ActiveStepContent({
             isReExplaining={isReExplaining}
             onSubmit={onSubmitQuiz}
             onContinue={onContinueQuiz}
+            onRetry={onRetryQuiz}
             onSpeak={onToggleTTS}
             isSpeaking={isSpeaking}
             currentText={currentText}
             onInteraction={onInteraction}
+            stepId={activeStep.id}
           />
         </div>
       )}

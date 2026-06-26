@@ -36,7 +36,7 @@ export default function SuggestedQuestions({ countryName, onSelect }: SuggestedQ
                 onSelect(q);
               }
             }}
-            className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-xs text-gray-200 hover:bg-white/10 hover:border-blue-500/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            className="px-3 py-2 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-xs text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10 hover:border-blue-500/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             aria-label={q}
           >
             <TranslatedText text={q} />

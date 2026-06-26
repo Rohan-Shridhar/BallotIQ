@@ -1,7 +1,7 @@
-import { doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, where, deleteDoc, updateDoc } from 'firebase/firestore';
 import { getFirestoreDB, authReady } from '../client';
 import { logger } from '@/lib/logger';
-import type { UserContext, UserProgress, ChatMessage } from '@/types';
+import type { UserContext, UserProgress, ChatMessage, ConversationMetadata } from '@/types';
 
 /**
  * Saves or updates user session context in Firestore.
@@ -10,6 +10,7 @@ export async function saveUserContext(context: UserContext): Promise<void> {
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     const ref = doc(db, 'sessions', context.sessionId, 'context', 'current');
     await setDoc(ref, context, { merge: true });
   } catch (error) {
@@ -24,6 +25,7 @@ export async function getUserContext(sessionId: string): Promise<UserContext | n
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return null;
     const ref = doc(db, 'sessions', sessionId, 'context', 'current');
     const snap = await getDoc(ref);
     return snap.exists() ? (snap.data() as UserContext) : null;
@@ -40,6 +42,7 @@ export async function saveProgress(progress: UserProgress): Promise<void> {
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     const ref = doc(db, 'sessions', progress.sessionId, 'progress', 'current');
     await setDoc(ref, { ...progress, lastUpdated: new Date().toISOString() }, { merge: true });
   } catch (error) {
@@ -54,6 +57,7 @@ export async function getProgress(sessionId: string): Promise<UserProgress | nul
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return null;
     const ref = doc(db, 'sessions', sessionId, 'progress', 'current');
     const snap = await getDoc(ref);
     return snap.exists() ? (snap.data() as UserProgress) : null;
@@ -73,6 +77,7 @@ export async function saveChatMessage(
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     const ref = doc(db, 'sessions', sessionId, 'messages', message.id);
     await setDoc(ref, message);
   } catch (error) {
@@ -87,6 +92,7 @@ export async function getChatHistory(sessionId: string): Promise<ChatMessage[]> 
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return [];
     const messagesRef = collection(db, 'sessions', sessionId, 'messages');
     const q = query(messagesRef, orderBy('timestamp', 'asc'), limit(20));
     const snap = await getDocs(q);
@@ -94,5 +100,94 @@ export async function getChatHistory(sessionId: string): Promise<ChatMessage[]> 
   } catch (error) {
     console.error('[Firestore] Failed to get chat history:', error);
     return [];
+  }
+}
+
+/**
+ * Saves or updates conversation metadata in Firestore.
+ */
+export async function saveConversationMetadata(metadata: ConversationMetadata): Promise<void> {
+  try {
+    await authReady;
+    const db = getFirestoreDB();
+    if (!db) return;
+    const ref = doc(db, 'sessions', metadata.id);
+    await setDoc(ref, metadata, { merge: true });
+  } catch (error) {
+    logger.error('[Firestore] Failed to save conversation metadata:', error, { component: 'Firestore' });
+  }
+}
+
+/**
+ * Retrieves conversation metadata for a specific session.
+ */
+export async function getConversationMetadata(sessionId: string): Promise<ConversationMetadata | null> {
+  try {
+    await authReady;
+    const db = getFirestoreDB();
+    if (!db) return null;
+    const ref = doc(db, 'sessions', sessionId);
+    const snap = await getDoc(ref);
+    return snap.exists() ? (snap.data() as ConversationMetadata) : null;
+  } catch (error) {
+    logger.error('[Firestore] Failed to get conversation metadata:', error, { component: 'Firestore', sessionId });
+    return null;
+  }
+}
+
+/**
+ * Retrieves all conversations belonging to a user from Firestore.
+ */
+export async function getUserConversations(userId: string): Promise<ConversationMetadata[]> {
+  try {
+    await authReady;
+    const db = getFirestoreDB();
+    if (!db) return [];
+    const sessionsRef = collection(db, 'sessions');
+    const q = query(sessionsRef, where('userId', '==', userId));
+    const snap = await getDocs(q);
+    // Sort on client side to avoid needing a custom composite index in Firestore
+    return snap.docs
+      .map((d) => d.data() as ConversationMetadata)
+      // Filter out documents that don't have metadata (like old test data without userId)
+      .filter((conv) => !!conv.id && !!conv.userId)
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  } catch (error) {
+    logger.error('[Firestore] Failed to get user conversations:', error, { component: 'Firestore' });
+    return [];
+  }
+}
+
+/**
+ * Deletes a conversation session from Firestore.
+ */
+export async function deleteConversation(sessionId: string): Promise<void> {
+  try {
+    await authReady;
+    const db = getFirestoreDB();
+    if (!db) return;
+    // Delete the root session document
+    const ref = doc(db, 'sessions', sessionId);
+    await deleteDoc(ref);
+  } catch (error) {
+    logger.error('[Firestore] Failed to delete conversation:', error, { component: 'Firestore' });
+  }
+}
+
+/**
+ * Renames a conversation session in Firestore.
+ */
+export async function renameConversation(sessionId: string, newTitle: string): Promise<void> {
+  try {
+    await authReady;
+    const db = getFirestoreDB();
+    if (!db) return;
+    const ref = doc(db, 'sessions', sessionId);
+    await updateDoc(ref, { 
+      title: newTitle, 
+      updatedAt: new Date().toISOString() 
+    });
+  } catch (error) {
+    logger.error('[Firestore] Failed to rename conversation:', error, { component: 'Firestore' });
   }
 }

@@ -11,7 +11,7 @@ import { ArrowLeft, Zap, MapPin } from 'lucide-react';
 import type { UserContext } from '@/types';
 import { useQuiz } from '@/hooks/useQuiz';
 import { useProgress } from '@/hooks/useProgress';
-import { generatePerformanceInsight } from '@/lib/gemini/client';
+import { apiGeneratePerformanceInsight } from '@/lib/gemini/api';
 import { logQuizComplete } from '@/lib/firebase/analytics';
 import { getFallbackGuide } from '@/lib/gemini/fallback';
 import QuizCard from '@/components/Quiz/QuizCard';
@@ -20,6 +20,7 @@ import QuizWarningModal from '@/components/Quiz/QuizWarningModal';
 import ProgressDots from '@/components/Quiz/ProgressDots';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import TranslatedText from '@/components/ui/TranslatedText';
 import BottomNav from '@/components/ui/BottomNav';
@@ -77,7 +78,7 @@ export default function QuizPage() {
   useEffect(() => {
     if (phase === 'complete' && userContext && results.length > 0) {
       logQuizComplete(score, questions.length, userContext.countryCode);
-      generatePerformanceInsight(
+      apiGeneratePerformanceInsight(
         results, questions, userContext.knowledgeLevel,
         userContext.countryCode, userContext.sessionId
       ).then(setInsight);
@@ -126,12 +127,13 @@ export default function QuizPage() {
               <MapPin className="w-3.5 h-3.5" />
               <TranslatedText text="Find Polling Stations" />
             </button>
+            <ThemeToggle />
             <LanguageSelector />
           </div>
         </div>
       </header>
 
-      <div id="main-content" tabIndex={-1} className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 outline-none">
+      <div id="main-content" tabIndex={-1} className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-24 md:py-8 outline-none">
         <ErrorBoundary componentName="QuizPage">
           {loading ? (
             <div className="space-y-6">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { UserContext } from '@/types';
 import { getCountryByCode } from '@/lib/constants/countries';
@@ -10,6 +10,7 @@ import { useElectionGuide } from '@/hooks/useElectionGuide';
 import { useMicroQuiz } from '@/hooks/useMicroQuiz';
 import { useAdaptiveLearning } from '@/hooks/useAdaptiveLearning';
 import { useProactiveAssistant } from '@/hooks/useProactiveAssistant';
+import { playCompletionSound } from '@/lib/utils/audio';
 
 /**
  * Custom hook to manage the complex state and data orchestration for the learning page.
@@ -48,10 +49,22 @@ export function useLearnPageLogic() {
   const { steps, loading: guideLoading } = useElectionGuide(countryCode, userContext);
   
   // Progress tracking
-  const { completeStep, completedSteps, saveMicroQuizResult } = useProgress(
+  const { completeStep: _completeStep, completedSteps, saveMicroQuizResult, updateLanguage } = useProgress(
     countryCode, 
     userContext?.knowledgeLevel || 'beginner'
   );
+
+  /**
+   * Wraps the underlying completeStep to trigger auditory feedback.
+   * Sound only plays for steps that are not already marked as complete,
+   * mirroring the guard inside useProgress.completeStep.
+   */
+  const completeStep = useCallback((stepId: string) => {
+    if (!completedSteps.includes(stepId)) {
+      playCompletionSound();
+    }
+    _completeStep(stepId);
+  }, [_completeStep, completedSteps]);
 
   // Adaptive learning core
   const { 
@@ -59,6 +72,7 @@ export function useLearnPageLogic() {
     adaptationActive, reExplanation, isReExplaining,
     consecutiveErrors,
     handleMicroQuizResult: handleAdaptiveResult,
+    clearReExplanation,
     confirmAdaptation,
     moveToNextStep
   } = useAdaptiveLearning(userContext, steps, completedSteps);
@@ -95,10 +109,20 @@ export function useLearnPageLogic() {
   const handleStepClick = (index: number) => {
     stopTTS();
     resetQuiz();
+    clearReExplanation();
     setCurrentStepIndex(index);
     recordInteraction();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  /**
+   * Resets quiz state and clears the AI re-explanation so the user can
+   * attempt the micro-quiz again with a clean slate.
+   */
+  const handleRetryQuiz = useCallback(() => {
+    resetQuiz();
+    clearReExplanation();
+  }, [resetQuiz, clearReExplanation]);
 
   return {
     router,
@@ -125,11 +149,13 @@ export function useLearnPageLogic() {
     explanation,
     submitAnswer,
     resetQuiz,
+    handleRetryQuiz,
     toggleTTS,
     isSpeaking,
     currentText,
     handleStepClick,
     moveToNextStep,
     completeStep,
+    updateLanguage,
   };
 }

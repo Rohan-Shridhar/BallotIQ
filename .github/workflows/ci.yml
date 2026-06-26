@@ -1,0 +1,38 @@
+name: CI – Tests & jest-output.json
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run tests & upload jest-output.json artifact
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ballotiq
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ballotiq/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests and generate jest-output.json
+        run: npx jest --json --outputFile=jest-output.json
+
+      - name: Upload jest-output.json as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-output
+          path: ballotiq/jest-output.json

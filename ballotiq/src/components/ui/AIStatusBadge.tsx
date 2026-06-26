@@ -26,19 +26,19 @@ export default function AIStatusBadge({ mode, className = '' }: AIStatusBadgePro
     live: {
       label: 'Live AI',
       icon: Zap,
-      color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20',
       pulse: true
     },
     cached: {
       label: 'Verified Cache',
       icon: Database,
-      color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+      color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/20',
       pulse: false
     },
     error: {
       label: 'AI Inactive',
       icon: Bot,
-      color: 'text-gray-400 bg-gray-500/10 border-gray-500/20',
+      color: 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-500/10 border-gray-200 dark:border-gray-500/20',
       pulse: false
     }
   };

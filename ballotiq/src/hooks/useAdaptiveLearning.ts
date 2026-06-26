@@ -8,9 +8,11 @@
 
 import { useState, useCallback } from 'react';
 import type { ElectionStep, UserContext } from '@/types';
-import { reExplainConcept } from '@/lib/gemini/client';
+import { apiReExplainConcept } from '@/lib/gemini/api';
 import { saveUserContext } from '@/lib/firebase/firestore';
 import { logAdaptationTriggered } from '@/lib/firebase/analytics';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 /** Consecutive wrong answers before adaptation triggers */
 const ADAPTATION_THRESHOLD = 2;
@@ -23,6 +25,7 @@ interface UseAdaptiveLearningReturn {
   reExplanation: string | null;
   isReExplaining: boolean;
   handleMicroQuizResult: (correct: boolean, step: ElectionStep, userAnswer: string, correctAnswer: string) => Promise<void>;
+  clearReExplanation: () => void;
   confirmAdaptation: () => void;
   dismissAdaptation: () => void;
   moveToNextStep: () => void;
@@ -58,12 +61,23 @@ export function useAdaptiveLearning(
       const updatedCtx = { ...userContext, adaptationActive: true };
       saveUserContext(updatedCtx).catch(console.error);
       logAdaptationTriggered('user_request', currentStepIndex).catch(console.error);
+      captureEvent(EVENTS.ADAPTATION_TRIGGERED, {
+        trigger: 'user_request',
+        step_index: currentStepIndex,
+        country_code: userContext.countryCode,
+        knowledge_level: userContext.knowledgeLevel,
+      });
     }
   }, [userContext, currentStepIndex]);
 
   const dismissAdaptation = useCallback(() => {
     setConsecutiveErrors(0);
     setShowAdaptationPrompt(false);
+  }, []);
+
+  /** Clears the AI re-explanation so the user can retake the quiz fresh. */
+  const clearReExplanation = useCallback(() => {
+    setReExplanation(null);
   }, []);
 
   const handleMicroQuizResult = useCallback(async (
@@ -83,6 +97,11 @@ export function useAdaptiveLearning(
       // Show adaptation prompt after threshold
       if (next >= ADAPTATION_THRESHOLD && !adaptationActive) {
         setShowAdaptationPrompt(true);
+        captureEvent(EVENTS.ADAPTATION_TRIGGERED, {
+          trigger: 'threshold',
+          consecutive_errors: next,
+          step_id: step.id,
+        });
       }
       return next;
     });
@@ -90,9 +109,14 @@ export function useAdaptiveLearning(
     const isNowAdaptive = adaptationActive;
 
     // Fetch re-explanation from Gemini
+    captureEvent(EVENTS.RE_EXPLANATION_REQUESTED, {
+      step_id: step.id,
+      step_title: step.title,
+      consecutive_errors: consecutiveErrors + 1,
+    });
     setIsReExplaining(true);
     try {
-      const explanation = await reExplainConcept(
+      const explanation = await apiReExplainConcept(
         step, userAnswer, correctAnswer,
         isNowAdaptive ? 'beginner' : (userContext?.knowledgeLevel ?? 'beginner'),
         userContext?.sessionId
@@ -115,7 +139,7 @@ export function useAdaptiveLearning(
   return {
     currentStepIndex, adaptationActive, consecutiveErrors, showAdaptationPrompt,
     reExplanation, isReExplaining,
-    handleMicroQuizResult, confirmAdaptation, dismissAdaptation,
+    handleMicroQuizResult, clearReExplanation, confirmAdaptation, dismissAdaptation,
     moveToNextStep, setCurrentStepIndex,
   };
 }

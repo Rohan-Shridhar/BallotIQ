@@ -12,8 +12,10 @@ import DiagnosticQuestion from '@/components/Assessment/DiagnosticQuestion';
 import KnowledgeMeter from '@/components/Assessment/KnowledgeMeter';
 import { useAssessment } from '@/hooks/useAssessment';
 import { useProgress } from '@/hooks/useProgress';
+import { useTranslation } from '@/hooks/useTranslation';
 import { useTTS } from '@/hooks/useTTS';
 import LanguageSelector from '@/components/ui/LanguageSelector';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import type { Country } from '@/types';
 import Image from 'next/image';
 
@@ -49,10 +51,23 @@ function AssessmentFlow({ country, sessionId }: { country: Country; sessionId: s
     phase, currentQuestion, isAnalyzing, userContext, answerQuestion, goBack,
   } = useAssessment(country.code, country.name, sessionId);
   
-  const { resetProgress } = useProgress(
+  const { resetProgress, progress, updateLanguage } = useProgress(
     country.code, 
     userContext?.knowledgeLevel ?? 'beginner'
   );
+
+  const { language: currentLang, setLanguage } = useTranslation();
+
+  // Restore the saved language preference from Firestore on session load.
+  // localStorage is the fast synchronous fallback; this async effect catches
+  // cases where storage was cleared or the user is on a new device.
+  useEffect(() => {
+    if (progress?.language && progress.language !== currentLang) {
+      setLanguage(progress.language);
+    }
+  // Only run when progress first loads — not on every currentLang change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress?.language]);
 
   const { isSpeaking, currentText, toggle: toggleTTS } = useTTS(sessionId);
 
@@ -61,7 +76,7 @@ function AssessmentFlow({ country, sessionId }: { country: Country; sessionId: s
       sessionStorage.setItem('ballotiq_context', JSON.stringify(userContext));
       resetProgress(); // CLEAR OLD DATA
       const timer = setTimeout(() => {
-        router.push(`/learn/${country.code.toLowerCase()}`);
+        router.push(`/learn/${country.code.toLowerCase()}/`);
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -96,6 +111,7 @@ function AssessmentFlow({ country, sessionId }: { country: Country; sessionId: s
             />
             <span className="text-sm text-gray-400">{country.name}</span>
           </div>
+          <ThemeToggle />
           <LanguageSelector />
         </div>
       </header>

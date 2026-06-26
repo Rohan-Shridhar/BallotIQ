@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+jest-output.json
 
 # next.js
 /.next/
@@ -31,7 +32,11 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # scratch / local dev scripts (may contain secrets)
 /scratch
@@ -42,3 +47,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# next-agents-md
+.next-docs/

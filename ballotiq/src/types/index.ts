@@ -13,7 +13,7 @@ export type ElectionStepStatus = 'locked' | 'upcoming' | 'current' | 'completed'
 export type QuizDifficulty = 'easy' | 'medium' | 'hard';
 
 /** Languages supported by BallotIQ */
-export type SupportedLanguage = 'en' | 'hi' | 'ta' | 'te' | 'fr' | 'es' | 'de' | 'ar';
+export type SupportedLanguage = 'en' | 'hi' | 'ta' | 'te' | 'fr' | 'es' | 'de' | 'ar' | 'pt';
 
 /** Source of learning content */
 export type LearningSource = 'gemini' | 'cache' | 'fallback';
@@ -64,6 +64,7 @@ export interface ElectionStep {
   description: string;
   detailedExplanation: string;
   simpleExplanation: string;
+  fallbackExplanations?: string[];
   timeline: string;
   requirements: string[];
   tips: string[];
@@ -144,7 +145,8 @@ export interface RateLimitState {
   geminiCallsToday: number;
   translateCallsToday: number;
   ttsCallsToday: number;
-  lastReset: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  lastResetAt: any;
 }
 
 /** Generic cache entry with TTL */
@@ -153,3 +155,15 @@ export interface CacheEntry<T> {
   cachedAt: string;
   expiresAt: string;
 }
+
+/** Metadata for a chat conversation session */
+export interface ConversationMetadata {
+  id: string;          // The conversation's sessionId
+  userId: string;      // The user's stable ID (from localStorage: ballotiq_session_id)
+  title: string;       // Auto-generated title or custom renamed title
+  countryCode: string; // The country of this conversation context
+  conversationSummary?: string; // Concise summary of the long-term context
+  createdAt: string;   // ISO timestamp
+  updatedAt: string;   // ISO timestamp
+}
+

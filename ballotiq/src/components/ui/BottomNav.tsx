@@ -1,5 +1,5 @@
 import { useRouter } from 'next/navigation';
-import { BookOpen, Trophy, MessageCircle, MapPin } from 'lucide-react';
+import { BookOpen, Trophy, MessageCircle, MapPin, HelpCircle } from 'lucide-react';
 import TranslatedText from '@/components/ui/TranslatedText';
 
 export type ActiveTab = 'learn' | 'quiz' | 'polling' | 'assistant';
@@ -19,7 +19,7 @@ export default function BottomNav({ activeTab, countryCode }: BottomNavProps) {
       aria-label="Bottom navigation"
     >
       <button
-        onClick={() => router.push(`/learn/${countryCode}`)}
+        onClick={() => router.push(`/learn/${countryCode.toLowerCase()}/`)}
         className={`flex-1 flex flex-col items-center justify-center py-3 text-[10px] font-bold gap-1 transition-colors ${
           activeTab === 'learn' ? 'text-blue-400' : 'text-slate-600 hover:text-slate-400'
         }`}
@@ -64,6 +64,19 @@ export default function BottomNav({ activeTab, countryCode }: BottomNavProps) {
       >
         <MessageCircle className="w-5 h-5" />
         <TranslatedText text="Assistant" />
+      </button>
+
+      <button
+        onClick={() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('toggle-keyboard-shortcuts'));
+          }
+        }}
+        className="flex-1 flex flex-col items-center justify-center py-3 text-[10px] font-bold gap-1 transition-colors text-slate-600 hover:text-slate-400"
+        aria-label="Open keyboard shortcuts help"
+      >
+        <HelpCircle className="w-5 h-5" />
+        <TranslatedText text="Help" />
       </button>
     </nav>
   );

@@ -7,7 +7,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ElectionStep, QuizPhase, QuizQuestion, QuizResult, UserContext } from '@/types';
-import { generatePersonalizedQuiz, generateLocalFallbackQuiz } from '@/lib/gemini/client';
+import { generateLocalFallbackQuiz } from '@/lib/gemini/quizUtils';
+import { apiGeneratePersonalizedQuiz } from '@/lib/gemini/api';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 interface UseQuizReturn {
   questions: QuizQuestion[];
@@ -42,6 +45,12 @@ export function useQuiz(
   useEffect(() => {
     if (!userContext || fetchedRef.current) return;
     
+    captureEvent(EVENTS.QUIZ_STARTED, {
+      country_code: userContext.countryCode,
+      knowledge_level: userContext.knowledgeLevel,
+      completed_steps: completedSteps.length,
+    });
+
     // 1. Instantly provide fallback questions for <2s load time
     const localFallback = generateLocalFallbackQuiz(completedSteps, userContext.knowledgeLevel);
     if (localFallback.length > 0) {
@@ -61,7 +70,7 @@ export function useQuiz(
     async function loadQuiz() {
       // Don't set loading(true) again if we already have fallback questions
       try {
-        const qs = await generatePersonalizedQuiz(
+        const qs = await apiGeneratePersonalizedQuiz(
           completedSteps,
           userContext!.knowledgeLevel,
           userContext!.countryCode,
@@ -86,12 +95,18 @@ export function useQuiz(
     if (!questions[currentIndex]) return;
     const q = questions[currentIndex];
     const timeTaken = Math.round((Date.now() - startTimeRef.current) / 1000);
+    const correct = selectedIndex === q.correctIndex;
     const result: QuizResult = {
       questionId: q.id,
       selectedIndex,
-      isCorrect: selectedIndex === q.correctIndex,
+      isCorrect: correct,
       timeTakenSeconds: timeTaken,
     };
+    captureEvent(EVENTS.QUIZ_QUESTION_ANSWERED, {
+      question_index: currentIndex,
+      correct,
+      time_taken_seconds: timeTaken,
+    });
     setResults((prev) => [...prev, result]);
     setPhase('reviewing');
   }, [questions, currentIndex]);
@@ -103,9 +118,27 @@ export function useQuiz(
       setPhase('active');
       startTimeRef.current = Date.now();
     } else {
+      const finalScore = results.filter((r) => r.isCorrect).length;
+      const passed = finalScore >= Math.ceil(questions.length * 0.7);
+      captureEvent(EVENTS.QUIZ_COMPLETED, {
+        score: finalScore,
+        total: questions.length,
+        passed,
+      });
+      if (passed) {
+        captureEvent(EVENTS.CERTIFICATION_EARNED, {
+          score: finalScore,
+          total: questions.length,
+        });
+      } else {
+        captureEvent(EVENTS.QUIZ_FAILED, {
+          score: finalScore,
+          total: questions.length,
+        });
+      }
       setPhase('complete');
     }
-  }, [currentIndex, questions.length]);
+  }, [currentIndex, questions.length, results]);
 
   const score = results.filter((r) => r.isCorrect).length;
 

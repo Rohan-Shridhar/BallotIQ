@@ -1,14 +1,18 @@
-'use client';
+"use client";
 
 /**
  * Hook for fetching adaptive election content with three-tier fallback.
  * Optimized for <1s initial load by serving fallback content immediately.
  */
 
-import { useState, useEffect, useRef } from 'react';
-import type { ElectionStep, LearningSource, UserContext } from '@/types';
-import { generatePersonalizedGuide } from '@/lib/gemini/client';
-import { getFallbackGuide } from '@/lib/gemini/fallback';
+import { useOffline } from "@/hooks/useOffline";
+import { apiGeneratePersonalizedGuideStream } from "@/lib/gemini/api";
+import { getFallbackGuide } from "@/lib/gemini/fallback";
+import { isElectionStepsArray } from "@/lib/gemini/validator";
+import { EVENTS } from "@/lib/posthog/events";
+import { captureEvent } from "@/lib/posthog/helper";
+import type { ElectionStep, LearningSource, UserContext } from "@/types";
+import { useEffect, useRef, useState } from "react";
 
 interface UseElectionGuideReturn {
   steps: ElectionStep[];
@@ -20,9 +24,6 @@ interface UseElectionGuideReturn {
 
 /**
  * Fetches and manages the personalized election guide.
- * @param countryCode - ISO country code
- * @param userContext - User's session context with knowledge level and confusion
- * @returns Steps, loading state, error, and content source
  */
 export function useElectionGuide(
   countryCode: string,
@@ -30,38 +31,63 @@ export function useElectionGuide(
 ): UseElectionGuideReturn {
   const [steps, setSteps] = useState<ElectionStep[]>(() => {
     if (!countryCode || !userContext) return [];
-    const initialFallback = getFallbackGuide(countryCode, userContext.knowledgeLevel);
-    return initialFallback?.map((s, i) => ({
-      ...s,
-      status: i === 0 ? 'current' as const : 'locked' as const,
-    })) ?? [];
+    const initialFallback = getFallbackGuide(
+      countryCode,
+      userContext.knowledgeLevel,
+    );
+    return (
+      initialFallback?.map((s, i) => ({
+        ...s,
+        status: i === 0 ? ("current" as const) : ("locked" as const),
+      })) ?? []
+    );
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<LearningSource>(() => {
-    return (countryCode && userContext) ? 'fallback' : 'fallback';
+    return countryCode && userContext ? "fallback" : "fallback";
   });
   const fetchedRef = useRef(false);
+  const isOffline = useOffline();
 
   useEffect(() => {
-    if (countryCode && userContext && steps.length === 0 && source === 'fallback') {
-      const fallback = getFallbackGuide(countryCode, userContext.knowledgeLevel);
+    if (isOffline && source === "fallback" && steps.length > 0) {
+      captureEvent(EVENTS.OFFLINE_CONTENT_ACCESSED, {
+        country_code: countryCode,
+        step_count: steps.length,
+      });
+    }
+  }, [isOffline]);
+
+  useEffect(() => {
+    if (
+      countryCode &&
+      userContext &&
+      steps.length === 0 &&
+      source === "fallback"
+    ) {
+      const fallback = getFallbackGuide(
+        countryCode,
+        userContext.knowledgeLevel,
+      );
       if (fallback) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSteps(fallback.map((s, i) => ({
-          ...s,
-          status: i === 0 ? 'current' as const : 'locked' as const,
-        })));
+        setSteps(
+          fallback.map((s, i) => ({
+            ...s,
+            status: i === 0 ? ("current" as const) : ("locked" as const),
+          })),
+        );
       }
     }
   }, [countryCode, userContext, steps.length, source]);
 
   useEffect(() => {
     if (!userContext || !countryCode || fetchedRef.current) return;
-    
+
     fetchedRef.current = true;
 
     let didTimeout = false;
+    let accumulated = "";
 
     async function loadGuide() {
       setLoading(true);
@@ -71,38 +97,76 @@ export function useElectionGuide(
       const timeoutId = setTimeout(() => {
         if (!didTimeout) {
           didTimeout = true;
-          console.info('[ElectionGuide] Fast-rendering fallback while AI generates in background...');
+          console.info(
+            "[ElectionGuide] Fast-rendering fallback while AI generates in background...",
+          );
           setLoading(false);
         }
       }, 800);
 
       try {
-        const result = await generatePersonalizedGuide(
+        await apiGeneratePersonalizedGuideStream(
           countryCode,
           userContext!.countryName,
           userContext!.knowledgeLevel,
-          [userContext!.mainConfusion || 'general election process'],
-          userContext!.mainConfusion || '',
+          [userContext!.mainConfusion || "general election process"],
+          userContext!.mainConfusion || "",
+          (chunk) => {
+            accumulated += chunk;
+
+            // Try to parse the accumulated JSON array
+            // We use a simple strategy: try to find the last complete object in the array
+            try {
+              let textToParse = accumulated.trim();
+              if (!textToParse.endsWith("]")) {
+                // Try to close the array if it's not closed
+                textToParse = textToParse.replace(/,?\s*$/, "") + "]";
+                if (!textToParse.startsWith("[")) {
+                  // If it doesn't start with [, it might be starting with markdown fence or just raw content
+                  const startIdx = textToParse.indexOf("[");
+                  if (startIdx !== -1)
+                    textToParse = textToParse.substring(startIdx);
+                }
+              }
+
+              const parsed = JSON.parse(textToParse);
+              if (isElectionStepsArray(parsed)) {
+                setSteps(
+                  parsed.map((s, i) => ({
+                    ...s,
+                    status:
+                      i === 0 ? ("current" as const) : ("locked" as const),
+                  })),
+                );
+                setSource("gemini");
+                // If we have at least one step, we can stop the loading pulse
+                if (parsed.length > 0) setLoading(false);
+              }
+            } catch {
+              // Ignore partial parse errors
+            }
+          },
           userContext!.sessionId,
           userContext!.recommendedStepCount,
         );
 
         clearTimeout(timeoutId);
-
-        // Update with personalized content (even if timeout already fired and fallback is showing)
-        if (result.source === 'gemini' || result.source === 'cache') {
-          const stepsWithStatus = result.steps.map((s, i) => ({
-            ...s,
-            status: i === 0 ? 'current' as const : 'locked' as const,
-          }));
-
-          setSteps(stepsWithStatus);
-          setSource(result.source);
-        }
       } catch (err) {
         if (didTimeout) return;
         clearTimeout(timeoutId);
-        console.error('[ElectionGuide] AI fetch failed, using already loaded fallback:', err);
+        console.error(
+          "[ElectionGuide] AI fetch failed, using already loaded fallback:",
+          err,
+        );
+        captureEvent(EVENTS.GEMINI_API_FAILED, {
+          context: "election_guide",
+          country_code: countryCode,
+          error: String(err),
+        });
+        captureEvent(EVENTS.FALLBACK_CONTENT_SERVED, {
+          context: "election_guide",
+          country_code: countryCode,
+        });
       } finally {
         if (!didTimeout) setLoading(false);
       }
@@ -116,6 +180,6 @@ export function useElectionGuide(
     loading,
     error,
     source,
-    personalizedFor: userContext?.knowledgeLevel ?? 'beginner',
+    personalizedFor: userContext?.knowledgeLevel ?? "beginner",
   };
 }

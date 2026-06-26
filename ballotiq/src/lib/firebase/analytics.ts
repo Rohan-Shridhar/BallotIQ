@@ -23,7 +23,9 @@ async function getAnalyticsInstance(): Promise<Analytics | null> {
   try {
     const supported = await isSupported();
     if (!supported) return null;
-    analyticsInstance = getAnalytics(getFirebaseApp());
+    const app = getFirebaseApp();
+    if (!app) return null;
+    analyticsInstance = getAnalytics(app);
     return analyticsInstance;
   } catch {
     return null;

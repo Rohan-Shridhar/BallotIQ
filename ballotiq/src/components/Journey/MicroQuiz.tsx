@@ -5,7 +5,7 @@
  * Provides immediate reinforcement and triggers adaptive logic if needed.
  */
 
-import { ArrowRight, Lightbulb, Loader2, Sparkles, Brain } from 'lucide-react';
+import { ArrowRight, Lightbulb, Loader2, RefreshCw, Sparkles, Brain } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import type { MicroQuizQuestion } from '@/types';
 import TTSButton from '@/components/ui/TTSButton';
@@ -24,10 +24,12 @@ interface MicroQuizProps {
   isReExplaining: boolean;
   onSubmit: (index: number) => void;
   onContinue: () => void;
+  onRetry?: () => void;
   onSpeak?: (text: string) => void;
   isSpeaking?: boolean;
   currentText?: string | null;
   onInteraction?: () => void;
+  stepId?: string;
 }
 
 /** Interactive micro-quiz card with animated feedback */
@@ -42,25 +44,49 @@ export default function MicroQuiz({
   isReExplaining,
   onSubmit,
   onContinue,
+  onRetry,
   onSpeak,
   isSpeaking = false,
   currentText = null,
   onInteraction,
+  stepId,
 }: MicroQuizProps) {
   if (loading && !question) {
     return (
-      <div className="p-6 bg-white/5 border border-white/10 rounded-2xl animate-pulse space-y-4">
-        <div className="h-4 bg-white/10 rounded w-3/4" />
-        <div className="grid grid-cols-1 gap-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-10 bg-white/5 rounded-xl" />
-          ))}
+      <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-6">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-[10px] font-bold text-blue-400/50 uppercase tracking-widest">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3 h-3 animate-pulse" />
+              <TranslatedText text="AI is crafting a question..." />
+            </div>
+          </div>
+          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-600/40 animate-progress-fast" />
+          </div>
+        </div>
+        
+        <div className="space-y-4 animate-pulse">
+          <div className="h-5 bg-white/10 rounded-lg w-5/6" />
+          <div className="grid grid-cols-1 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-12 bg-white/5 border border-white/5 rounded-xl" />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   if (!question) return null;
+
+  // Generate a stable, unique, and valid HTML identifier for the hint
+  const safeQuestionId = question.question
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  const hintId = `hint-${stepId || safeQuestionId}`;
 
   return (
     <ErrorBoundary componentName="MicroQuiz">
@@ -71,7 +97,7 @@ export default function MicroQuiz({
             <TranslatedText text="Quick Check" />
           </div>
           <h3 className="text-lg font-semibold text-white">
-            <TranslatedText text={question.question} />
+            <TranslatedText text={question.question} isStatic={false} />
           </h3>
           {onSpeak && (
             <TTSButton
@@ -95,7 +121,7 @@ export default function MicroQuiz({
           <div className="flex flex-col items-center gap-2">
             <button
               onClick={() => {
-                const hintEl = document.getElementById(`hint-${question.question.substring(0, 5)}`);
+                const hintEl = document.getElementById(hintId);
                 if (hintEl) hintEl.classList.toggle('hidden');
                 onInteraction?.();
               }}
@@ -104,9 +130,9 @@ export default function MicroQuiz({
             >
               <TranslatedText text="Need a hint?" />
             </button>
-            <div id={`hint-${question.question.substring(0, 5)}`} className="hidden animate-in fade-in slide-in-from-top-1">
+            <div id={hintId} className="hidden animate-in fade-in slide-in-from-top-1">
               <p className="text-[11px] text-gray-500 italic text-center px-4 leading-relaxed">
-                <TranslatedText text={question.hint} />
+                <TranslatedText text={question.hint} isStatic={false} />
               </p>
             </div>
           </div>
@@ -126,7 +152,7 @@ export default function MicroQuiz({
                   {isCorrect ? (
                     <TranslatedText text="You have a solid understanding of this concept." />
                   ) : (
-                    <TranslatedText text={explanation || ''} />
+                    <TranslatedText text={explanation || ''} isStatic={false} />
                   )}
                 </div>
               </div>
@@ -151,17 +177,44 @@ export default function MicroQuiz({
               </div>
             )}
 
-            <button
-              onClick={() => {
-                onContinue();
-                onInteraction?.();
-              }}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20"
-              aria-label="Continue to next step"
-            >
-              <TranslatedText text="Continue Learning" />
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {showResult && !isCorrect ? (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    onRetry?.();
+                    onInteraction?.();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold hover:bg-white/10 transition-all"
+                  aria-label="Try the quiz again"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <TranslatedText text="Try Again" />
+                </button>
+                <button
+                  onClick={() => {
+                    onContinue();
+                    onInteraction?.();
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20"
+                  aria-label="Continue to next step anyway"
+                >
+                  <TranslatedText text="Continue Anyway" />
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  onContinue();
+                  onInteraction?.();
+                }}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20"
+                aria-label="Continue to next step"
+              >
+                <TranslatedText text="Continue Learning" />
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
       </div>

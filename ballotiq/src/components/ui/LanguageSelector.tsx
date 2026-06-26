@@ -9,19 +9,41 @@ import { useState, useRef, useEffect } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { LANGUAGES } from '@/lib/constants/languages';
 import { useTranslation } from '@/hooks/useTranslation';
+import TranslatedText from '@/components/ui/TranslatedText';
+import type { SupportedLanguage } from '@/types';
+import { captureEvent } from '@/lib/posthog/helper';
+import { EVENTS } from '@/lib/posthog/events';
 
 interface LanguageSelectorProps {
   className?: string;
+  /** Optional callback invoked after a language is selected. Use this to
+   * persist the preference to Firestore via updateLanguage from useProgress. */
+  onLanguageChange?: (lang: SupportedLanguage) => void;
 }
 
 /** Premium custom dropdown for switching between 8 supported languages */
-export default function LanguageSelector({ className = '' }: LanguageSelectorProps) {
-  const { language, setLanguage } = useTranslation();
+export default function LanguageSelector({ className = '', onLanguageChange }: LanguageSelectorProps) {
+  const { language, setLanguage, translate } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [translatedPlaceholder, setTranslatedPlaceholder] = useState("Search language...");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadPlaceholder() {
+      const res = await translate("Search language...");
+      if (isMounted) {
+        setTranslatedPlaceholder(res);
+      }
+    }
+    loadPlaceholder();
+    return () => {
+      isMounted = false;
+    };
+  }, [language, translate]);
 
   const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
 
@@ -91,12 +113,12 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
         onKeyDown={(e) => {
           if (e.key === 'Escape') setIsOpen(false);
         }}
-        className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-200 hover:bg-white/10 hover:border-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
+        className="cursor-pointer flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-4 sm:py-2 bg-white/5 border border-white/10 rounded-xl text-xs sm:text-sm text-gray-200 hover:bg-white/10 hover:border-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
         aria-label="Change language"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <Globe className="w-4 h-4 text-blue-400" aria-hidden="true" />
+        <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" aria-hidden="true" />
         <span className="font-medium">{currentLang.nativeName}</span>
         <ChevronDown 
           className={`w-4 h-4 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
@@ -106,7 +128,7 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-[#070718] border border-white/10 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
+          className="language-dropdown absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] bg-[#070718] border border-white/10 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden"
           role="listbox"
           id="language-listbox"
         >
@@ -116,7 +138,7 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search language..."
+              placeholder={translatedPlaceholder}
               className="w-full px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50"
               onKeyDown={(e) => {
                 if (e.key === 'Escape') setIsOpen(false);
@@ -132,16 +154,20 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
                   <button
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      setLanguage(lang.code);
+                      captureEvent(EVENTS.LANGUAGE_CHANGED, { from: language, to: lang.code });
+                      setLanguage(lang.code as SupportedLanguage);
+                      onLanguageChange?.(lang.code as SupportedLanguage);
                       setIsOpen(false);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
-                        setLanguage(lang.code);
+                        captureEvent(EVENTS.LANGUAGE_CHANGED, { from: language, to: lang.code });
+                        setLanguage(lang.code as SupportedLanguage);
+                        onLanguageChange?.(lang.code as SupportedLanguage);
                         setIsOpen(false);
                       }
                     }}
-                    className={`w-full px-4 py-2.5 text-sm flex items-center justify-between transition-colors ${
+                    className={`cursor-pointer w-full px-4 py-2.5 text-sm flex items-center justify-between transition-colors ${
                       language === lang.code
                         ? 'bg-blue-500/10 text-blue-400 font-semibold'
                         : 'text-gray-400 hover:bg-white/5 hover:text-white'
@@ -158,7 +184,9 @@ export default function LanguageSelector({ className = '' }: LanguageSelectorPro
                 </li>
               ))
             ) : (
-              <p className="px-4 py-4 text-[10px] text-gray-600 text-center uppercase tracking-widest font-bold" role="status">No results found</p>
+              <p className="px-4 py-4 text-[10px] text-gray-600 text-center uppercase tracking-widest font-bold" role="status">
+                <TranslatedText text="No results found" />
+              </p>
             )}
           </div>
         </div>

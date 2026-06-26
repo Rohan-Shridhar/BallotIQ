@@ -15,6 +15,7 @@ export async function cacheElectionGuide(
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     const cacheKey = `${countryCode}_${knowledgeLevel}`;
     const ref = doc(db, 'guides_cache', cacheKey);
     const now = new Date();
@@ -46,6 +47,7 @@ export async function getCachedGuide(
       try {
         await authReady;
         const db = getFirestoreDB();
+        if (!db) return null;
         const cacheKey = `${countryCode}_${knowledgeLevel}`;
         const ref = doc(db, 'guides_cache', cacheKey);
         const snap = await getDoc(ref);
@@ -78,6 +80,7 @@ export async function cacheQuiz(
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return;
     const cacheKey = `quiz_${countryCode}_${knowledgeLevel}`;
     const ref = doc(db, 'quizzes_cache', cacheKey);
     const entry: CacheEntry<QuizQuestion[]> = {
@@ -101,6 +104,7 @@ export async function getCachedQuiz(
   try {
     await authReady;
     const db = getFirestoreDB();
+    if (!db) return null;
     const cacheKey = `quiz_${countryCode}_${knowledgeLevel}`;
     const ref = doc(db, 'quizzes_cache', cacheKey);
     const snap = await getDoc(ref);

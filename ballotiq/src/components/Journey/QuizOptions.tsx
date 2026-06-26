@@ -57,7 +57,7 @@ export default function QuizOptions({
             role="radio"
             aria-checked={isSelected}
           >
-            <TranslatedText text={option} />
+            <TranslatedText text={option} isStatic={false} />
             {showResult && isCorrectOption && <CheckCircle2 className="w-4 h-4" data-testid="check-circle" />}
             {showResult && isWrongSelection && <XCircle className="w-4 h-4" data-testid="x-circle" />}
           </button>
