@@ -41,6 +41,7 @@ export default function AssistantPage() {
   const [userContext, setUserContext] = useState<UserContext | null>(null);
   const [mounted, setMounted] = useState(false);
   const [conversations, setConversations] = useState<ConversationMetadata[]>([]);
+  const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userId, setUserId] = useState<string>('');
   const chatOpenedRef = useRef(false);
@@ -65,8 +66,15 @@ export default function AssistantPage() {
 
   const loadConversations = useCallback(async () => {
     if (!userId) return;
-    const list = await getUserConversations(userId);
-    setConversations(list);
+    setIsLoadingConversations(true);
+    try {
+      const list = await getUserConversations(userId);
+      setConversations(list);
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+    } finally {
+      setIsLoadingConversations(false);
+    }
   }, [userId]);
 
   useEffect(() => {
@@ -270,6 +278,7 @@ export default function AssistantPage() {
           onDeleteConversation={handleDeleteConversation}
           onRenameConversation={handleRenameConversation}
           onNewChat={handleNewChat}
+          isLoading={isLoadingConversations}
         />
 
         <div className="flex-1 overflow-hidden px-0 md:px-6 py-4 flex flex-col h-full">

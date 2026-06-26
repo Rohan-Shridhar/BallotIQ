@@ -19,6 +19,7 @@ interface ChatSidebarProps {
   onDeleteConversation: (id: string) => void;
   onRenameConversation: (id: string, newTitle: string) => void;
   onNewChat: () => void;
+  isLoading?: boolean;
 }
 
 export default function ChatSidebar({
@@ -30,6 +31,7 @@ export default function ChatSidebar({
   onDeleteConversation,
   onRenameConversation,
   onNewChat,
+  isLoading = false,
 }: ChatSidebarProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
@@ -269,7 +271,19 @@ export default function ChatSidebar({
 
         {/* Conversation list */}
         <div className="flex-1 overflow-y-auto px-2 py-4 no-scrollbar">
-          {conversations.length === 0 ? (
+          {isLoading ? (
+            <div className="space-y-2 pointer-events-none">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl animate-pulse">
+                  <div className="w-4 h-4 bg-white/10 rounded-md flex-shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 bg-white/10 rounded-md w-3/4" />
+                    <div className="h-2 bg-white/5 rounded-md w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-32 px-4 text-center">
               <MessageSquare className="w-8 h-8 text-gray-600 mb-2 stroke-1" />
               <p className="text-xs text-gray-500 font-medium">No previous chats. Start one above!</p>
