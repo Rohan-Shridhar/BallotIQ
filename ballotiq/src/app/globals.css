@@ -90,14 +90,14 @@
   }
 }
 
+/* ========== STEP 3: SMOOTH THEME TRANSITIONS ========== */
+/* Apply smooth transitions to root and body for theme changes */
 html {
   scroll-behavior: smooth;
   color-scheme: dark;
-}
-
-html[data-theme="light"],
-html.light {
-  color-scheme: light;
+  
+  /* Smooth transitions for theme changes */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
@@ -112,7 +112,30 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Smooth transitions for theme changes */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+html[data-theme="light"],
+html.light {
+  color-scheme: light;
+}
+
+/* Premium: Smooth transitions for common theme-changing properties */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: ease;
+  transition-duration: 200ms;
+}
+
+/* But exclude transitions for elements that should change instantly */
+.no-transition,
+.no-transition * {
+  transition: none !important;
+}
+
+/* ========== END STEP 3 ========== */
 
 h1,
 h2,
@@ -459,3 +482,200 @@ html.light .text-gradient {
   color: transparent;
 }
 
+/* ========== STEP 4: HIGH CONTRAST MODE (Accessibility) ========== */
+html.contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+
+  --card: #111111;
+  --card-foreground: #ffffff;
+
+  --popover: #111111;
+  --popover-foreground: #ffffff;
+
+  --primary: #ffff00; /* Yellow for maximum contrast */
+  --primary-foreground: #000000;
+
+  --secondary: #333333;
+  --secondary-foreground: #ffffff;
+
+  --muted: #222222;
+  --muted-foreground: #ffffff;
+
+  --accent: #00ffff; /* Cyan for maximum contrast */
+  --accent-foreground: #000000;
+
+  --destructive: #ff0000;
+  --destructive-foreground: #ffffff;
+
+  --border: #ffffff;
+  --input: #ffffff;
+  --ring: #ffff00;
+
+  /* Custom Gradients for Contrast Mode */
+  --grad-primary: linear-gradient(135deg, #ffff00 0%, #00ffff 100%);
+  --grad-surface: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+
+  color-scheme: dark;
+}
+
+html.contrast body {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+html.contrast * {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Links and interactive elements */
+html.contrast a,
+html.contrast button,
+html.contrast [role="button"] {
+  color: #00ffff !important;
+}
+
+html.contrast a:hover,
+html.contrast button:hover {
+  color: #ffff00 !important;
+}
+
+/* Input fields */
+html.contrast input,
+html.contrast textarea,
+html.contrast select {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+html.contrast input:focus,
+html.contrast textarea:focus {
+  outline: 2px solid #ffff00 !important;
+  outline-offset: 2px !important;
+}
+
+/* Cards and containers */
+html.contrast .glass,
+html.contrast .glass-light,
+html.contrast .bento-card {
+  background: #111111 !important;
+  border: 2px solid #ffffff !important;
+  backdrop-filter: none !important;
+}
+
+/* Primary buttons */
+html.contrast .bg-primary,
+html.contrast button.bg-primary {
+  background: #ffff00 !important;
+  color: #000000 !important;
+}
+
+html.contrast .bg-primary:hover,
+html.contrast button.bg-primary:hover {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Headings and text elements */
+html.contrast h1,
+html.contrast h2,
+html.contrast h3,
+html.contrast h4,
+html.contrast h5,
+html.contrast h6 {
+  color: #ffffff !important;
+}
+
+/* Text colors override for maximum contrast */
+html.contrast .text-gray-200,
+html.contrast .text-gray-300,
+html.contrast .text-gray-400,
+html.contrast .text-gray-500,
+html.contrast .text-gray-600,
+html.contrast .text-gray-700 {
+  color: #ffffff !important;
+}
+
+html.contrast .text-blue-300,
+html.contrast .text-blue-400,
+html.contrast .text-blue-500 {
+  color: #00ffff !important;
+}
+
+html.contrast .text-yellow-400,
+html.contrast .text-yellow-500 {
+  color: #ffff00 !important;
+}
+
+html.contrast .text-indigo-500 {
+  color: #00ffff !important;
+}
+
+/* Scrollbar for contrast mode */
+html.contrast::-webkit-scrollbar-track {
+  background: #000000 !important;
+}
+
+html.contrast::-webkit-scrollbar-thumb {
+  background: #ffffff !important;
+  border: 1px solid #000000 !important;
+}
+
+html.contrast::-webkit-scrollbar-thumb:hover {
+  background: #ffff00 !important;
+}
+
+/* Disable transitions in contrast mode for better performance */
+html.contrast * {
+  transition-duration: 0ms !important;
+}
+
+/* Remove glassmorphism blur in contrast mode for clarity */
+html.contrast .glass,
+html.contrast .glass-light {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* High contrast focus indicators */
+html.contrast :focus-visible {
+  outline: 3px solid #ffff00 !important;
+  outline-offset: 2px !important;
+}
+
+/* Contrast mode specific gradients */
+html.contrast .text-primary-gradient {
+  background: linear-gradient(135deg, #ffff00 0%, #00ffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html.contrast .text-gradient {
+  background: linear-gradient(to right, #ffffff, #ffff00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Contrast mode button overrides */
+html.contrast .hover\:bg-white\/10:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html.contrast .hover\:border-blue-500\/30:hover {
+  border-color: #00ffff !important;
+}
+
+html.contrast .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.contrast .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+/* ========== END STEP 4 ========== */

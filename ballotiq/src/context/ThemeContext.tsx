@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type Theme = 'dark' | 'light';
+export type Theme = 'dark' | 'light' | 'system' | 'contrast';
 
 interface ThemeContextType {
   theme: Theme;
@@ -14,36 +14,136 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === 'undefined') return 'dark';
+    if (typeof window === 'undefined') return 'system';
     const saved = localStorage.getItem('ballotiq_theme') as Theme;
-    return saved === 'light' || saved === 'dark' ? saved : 'dark';
+    return saved === 'light' ||
+           saved === 'dark' ||
+           saved === 'system' ||
+           saved === 'contrast'
+      ? saved
+      : 'system';
   });
+
+  const getSystemTheme = useCallback((): 'dark' | 'light' => {
+    if (typeof window === 'undefined') return 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+  }, []);
 
   const applyTheme = useCallback((newTheme: Theme) => {
     if (typeof window === 'undefined') return;
     
-    const root = window.document.documentElement;
-    if (newTheme === 'light') {
-      root.classList.remove('dark');
-      root.classList.add('light');
-      root.setAttribute('data-theme', 'light');
+    // Handle contrast mode separately
+    let resolvedTheme: 'dark' | 'light' | 'contrast';
+    
+    if (newTheme === 'contrast') {
+      resolvedTheme = 'contrast';
+    } else if (newTheme === 'system') {
+      resolvedTheme = getSystemTheme();
     } else {
-      root.classList.remove('light');
-      root.classList.add('dark');
-      root.setAttribute('data-theme', 'dark');
+      resolvedTheme = newTheme;
     }
+    
+    const root = window.document.documentElement;
+    
+    // Remove all theme classes first
+    root.classList.remove('dark', 'light', 'contrast');
+    
+    // Add the resolved theme class
+    root.classList.add(resolvedTheme);
+    root.setAttribute('data-theme', resolvedTheme);
+    
     localStorage.setItem('ballotiq_theme', newTheme);
     setThemeState(newTheme);
-  }, []);
+    
+    // Dispatch custom event for theme changes
+    // This allows other components to react to theme changes
+    window.dispatchEvent(
+      new CustomEvent('theme-change', {
+        detail: newTheme,
+      })
+    );
+  }, [getSystemTheme]);
 
+  // STEP 2.2 - INITIAL LOAD FLASH FIX (FOUC) with contrast support
   useEffect(() => {
     const saved = localStorage.getItem('ballotiq_theme') as Theme;
-    const initialTheme = saved === 'light' || saved === 'dark' ? saved : 'dark';
-    applyTheme(initialTheme);
-  }, [applyTheme]);
+    
+    const initialTheme =
+      saved === 'light' ||
+      saved === 'dark' ||
+      saved === 'system' ||
+      saved === 'contrast'
+        ? saved
+        : 'system';
+    
+    const root = window.document.documentElement;
+    
+    let resolved: 'dark' | 'light' | 'contrast';
+    
+    if (initialTheme === 'contrast') {
+      resolved = 'contrast';
+    } else if (initialTheme === 'system') {
+      resolved = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    } else {
+      resolved = initialTheme;
+    }
+    
+    // Remove all theme classes first
+    root.classList.remove('dark', 'light', 'contrast');
+    
+    // Apply theme immediately without animation to prevent flash
+    root.classList.add(resolved);
+    root.setAttribute('data-theme', resolved);
+    
+    setThemeState(initialTheme);
+  }, []);
 
+  // STEP 2.1 - SYSTEM THEME AUTO APPLY (with proper listener)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = () => {
+      if (theme === 'system') {
+        const systemTheme = mediaQuery.matches ? 'dark' : 'light';
+        const root = window.document.documentElement;
+        
+        // Remove all theme classes
+        root.classList.remove('dark', 'light', 'contrast');
+        
+        // Add system theme
+        root.classList.add(systemTheme);
+        root.setAttribute('data-theme', systemTheme);
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, [theme]);
+
+  // Toggle between dark, light, system, and contrast
   const toggleTheme = useCallback(() => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    // Cycle: dark → light → system → contrast → dark
+    let nextTheme: Theme;
+    
+    if (theme === 'dark') {
+      nextTheme = 'light';
+    } else if (theme === 'light') {
+      nextTheme = 'system';
+    } else if (theme === 'system') {
+      nextTheme = 'contrast';
+    } else {
+      nextTheme = 'dark';
+    }
+    
     applyTheme(nextTheme);
   }, [theme, applyTheme]);
 
