@@ -148,7 +148,6 @@ export default function ChoosePathPage() {
             alt={`Flag of ${selectedCountry.name}`}
             width={16}
             height={12}
-            unoptimized
             className="w-4 h-3 object-cover rounded-sm"
           />
           <span className="hidden xs:inline">{selectedCountry.name}</span>

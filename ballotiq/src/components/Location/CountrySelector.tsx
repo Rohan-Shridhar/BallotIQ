@@ -72,7 +72,7 @@ export default function CountrySelector({ onSelect, className = '' }: CountrySel
               alt=""
               width={32}
               height={24}
-              unoptimized
+              loading="lazy"
               className="w-8 h-6 object-cover rounded-sm shadow-sm flex-shrink-0"
             />
             <div className="min-w-0 flex-1 w-full">
