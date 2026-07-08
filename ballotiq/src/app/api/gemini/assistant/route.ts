@@ -7,8 +7,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAssistantResponse } from '@/lib/assistant/hybridAssistant';
 import type { ChatMessage, ElectionStep, UserContext } from '@/types';
+import { withAuth } from '@/lib/security/auth';
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req: NextRequest) => {
   try {
     const body = await req.json() as {
       question: string;
@@ -38,4 +39,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
