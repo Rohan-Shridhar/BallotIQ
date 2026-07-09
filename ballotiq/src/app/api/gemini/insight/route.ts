@@ -5,10 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/security/auth';
 import { generatePerformanceInsight } from '@/lib/gemini/quiz';
 import type { KnowledgeLevel, QuizQuestion, QuizResult } from '@/types';
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req: NextRequest) => {
   try {
     const body = await req.json() as {
       results: QuizResult[];
@@ -45,4 +46,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-export default function BackToTop(): JSX.Element | null {
+export default function BackToTop() {
   const [visible, setVisible] = useState<boolean>(false);
 
   useEffect(() => {

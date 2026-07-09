@@ -5,10 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/security/auth';
 import { generateMicroQuiz } from '@/lib/gemini/quiz';
 import type { ElectionStep, KnowledgeLevel } from '@/types';
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req: NextRequest) => {
   try {
     const body = await req.json() as {
       step: ElectionStep;
@@ -41,4 +42,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

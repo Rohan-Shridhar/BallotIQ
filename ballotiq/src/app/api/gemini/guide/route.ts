@@ -5,10 +5,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/security/auth';
 import { generatePersonalizedGuide, generatePersonalizedGuideStream } from '@/lib/gemini/guide';
 import type { KnowledgeLevel } from '@/types';
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req: NextRequest) => {
   try {
     const body = await req.json() as {
       countryCode: string;
@@ -75,4 +76,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
